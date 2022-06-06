@@ -1,5 +1,7 @@
 #!/bin/bash -e
 packages=(
+  chocolate-doom
+  doom-wad
   openssh
 )
 
