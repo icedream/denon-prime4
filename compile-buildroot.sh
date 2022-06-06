@@ -3,6 +3,9 @@ packages=(
   chocolate-doom
   doom-wad
   openssh
+  sdl2
+  sdl2_mixer
+  sdl2_net
 )
 
 filter_package_files() {
