@@ -1,0 +1,67 @@
+From 6202ba67b74e9de7099df8b98e3db8d33490996a Mon Sep 17 00:00:00 2001
+From: Peter Seiderer <ps.report@gmx.net>
+Date: Sun, 18 Jul 2021 00:08:09 +0200
+Subject: [PATCH] package/qt5base: fix another gcc-11 compile failure
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- add upstream patch fixing gcc-11 compile failure (missing
+  limits include)
+
+Fixes:
+
+  In file included from ../../../include/QtCore/5.15.2/QtCore/private/qoffsetstringarray_p.h:1,
+                   from ../../dbus/qdbuserror.cpp:44:
+  ../../../src/corelib/tools/qoffsetstringarray_p.h:70:22: error: ‘numeric_limits’ is not a member of ‘std’
+     70 |         Last <= std::numeric_limits<quint8>::max(),
+        |                      ^~~~~~~~~~~~~~
+  ../../../src/corelib/tools/qoffsetstringarray_p.h:70:43: error: wrong number of template arguments (1, should be 3)
+     70 |         Last <= std::numeric_limits<quint8>::max(),
+        |                                           ^
+
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+Signed-off-by: Yann E. MORIN <yann.morin.1998@free.fr>
+---
+ .../0008-Add-missing-limits-include.patch     | 32 +++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+ create mode 100644 package/qt5/qt5base/0008-Add-missing-limits-include.patch
+
+diff --git a/package/qt5/qt5base/0008-Add-missing-limits-include.patch b/package/qt5/qt5base/0008-Add-missing-limits-include.patch
+new file mode 100644
+index 00000000000..e489f2e551b
+--- /dev/null
++++ b/package/qt5/qt5base/0008-Add-missing-limits-include.patch
+@@ -0,0 +1,32 @@
++From 87a869a8404047240cccaa9f101351aeb9417a26 Mon Sep 17 00:00:00 2001
++From: Nicolas Fella <nicolas.fella@kdab.com>
++Date: Sun, 20 Jun 2021 17:36:41 +0200
++Subject: [PATCH] Add missing limits include
++
++The code uses std::numeric_limits but is lacking the appropriate include
++
++Pick-to: 5.15 6.1 6.2
++Change-Id: I41fa5ac4d8c4e06f35b5b1551ef2ad8417df80bd
++Reviewed-by: Giuseppe D'Angelo <giuseppe.dangelo@kdab.com>
++
++[Upstream: https://code.qt.io/cgit/qt/qtbase.git/patch/?id=2b2b3155d9f6ba1e4f859741468fbc47db09292b]
++Signed-off-by: Peter Seiderer <ps.report@gmx.net>
++---
++ src/corelib/tools/qoffsetstringarray_p.h | 1 +
++ 1 file changed, 1 insertion(+)
++
++diff --git a/src/corelib/tools/qoffsetstringarray_p.h b/src/corelib/tools/qoffsetstringarray_p.h
++index 4dd9e960..e26a57ff 100644
++--- a/src/corelib/tools/qoffsetstringarray_p.h
+++++ b/src/corelib/tools/qoffsetstringarray_p.h
++@@ -55,6 +55,7 @@
++ 
++ #include <tuple>
++ #include <array>
+++#include <limits>
++ 
++ QT_BEGIN_NAMESPACE
++ 
++-- 
++2.32.0
++

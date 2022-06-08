@@ -28,6 +28,10 @@ git init "buildroot/${VERSION_ID}"
   git remote add origin https://git.buildroot.net/buildroot || true
   git fetch origin "refs/tags/${VERSION_ID}:refs/tags/${VERSION_ID}"
   git checkout "${VERSION_ID}"
+  patches_dir=../../buildroot-patches/"${VERSION_ID}"
+  if [ -d "${patches_dir}" ]; then
+    git am "${patches_dir}"/*.patch
+  fi
 )
 
 cp -rv buildroot-config/. buildroot/"${VERSION_ID}"

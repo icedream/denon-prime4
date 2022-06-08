@@ -1,0 +1,147 @@
+From fe68d894715e0cfd214444efb586f434802ae2c2 Mon Sep 17 00:00:00 2001
+From: Peter Seiderer <ps.report@gmx.net>
+Date: Thu, 22 Jul 2021 23:24:34 +0200
+Subject: [PATCH] package/qt5declarative: fix gcc-11 compile failure
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- add patch for qv4regexp_p to include c++ limits include (instead of plain
+  c limit.h)
+
+Fixes:
+
+  In file included from jsruntime/qv4regexp_p.h:62,
+                   from jsruntime/qv4regexp.cpp:40:
+  ../3rdparty/masm/yarr/Yarr.h:46:44: error: ‘numeric_limits’ is not a member of ‘std’
+     46 | static const unsigned offsetNoMatch = std::numeric_limits<unsigned>::max();
+        |                                            ^~~~~~~~~~~~~~
+  ../3rdparty/masm/yarr/Yarr.h:46:59: error: expected primary-expression before ‘unsigned’
+     46 | static const unsigned offsetNoMatch = std::numeric_limits<unsigned>::max();
+        |                                                           ^~~~~~~~
+
+- add patch for qqmlprofilerevent_p to include c++ limits include
+
+Fixes:
+
+  In file included from qqmlprofilertypedevent_p.h:43,
+                   from qqmlprofilertypedevent.cpp:40:
+  qqmlprofilerevent_p.h: In member function ‘void QQmlProfilerEvent::assignNumbers(const Container&)’:
+  qqmlprofilerevent_p.h:314:65: error: ‘numeric_limits’ is not a member of ‘std’
+    314 |                     static_cast<quint16>(numbers.size()) : std::numeric_limits<quint16>::max();
+        |                                                                 ^~~~~~~~~~~~~~
+  qqmlprofilerevent_p.h:314:87: error: expected primary-expression before ‘>’ token
+    314 |                     static_cast<quint16>(numbers.size()) : std::numeric_limits<quint16>::max();
+        |                                                                                       ^
+  qqmlprofilerevent_p.h:314:90: error: ‘::max’ has not been declared; did you mean ‘std::max’?
+    314 |                     static_cast<quint16>(numbers.size()) : std::numeric_limits<quint16>::max();
+        |                                                                                          ^~~
+        |                                                                                          std::max
+
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+---
+ ...s-c-limits-include-instead-of-plain-.patch | 41 +++++++++++++++++
+ ...t_p-needs-c-limits-inlcude-fixes-gcc.patch | 45 +++++++++++++++++++
+ 2 files changed, 86 insertions(+)
+ create mode 100644 package/qt5/qt5declarative/0002-qv4regexp_p-needs-c-limits-include-instead-of-plain-.patch
+ create mode 100644 package/qt5/qt5declarative/0003-qqmlprofilerevent_p-needs-c-limits-inlcude-fixes-gcc.patch
+
+diff --git a/package/qt5/qt5declarative/0002-qv4regexp_p-needs-c-limits-include-instead-of-plain-.patch b/package/qt5/qt5declarative/0002-qv4regexp_p-needs-c-limits-include-instead-of-plain-.patch
+new file mode 100644
+index 00000000000..d3344c646b1
+--- /dev/null
++++ b/package/qt5/qt5declarative/0002-qv4regexp_p-needs-c-limits-include-instead-of-plain-.patch
+@@ -0,0 +1,41 @@
++From bfd3d907f48aba870be00cd251f0b63d34985be2 Mon Sep 17 00:00:00 2001
++From: Peter Seiderer <ps.report@gmx.net>
++Date: Thu, 22 Jul 2021 23:02:29 +0200
++Subject: [PATCH] qv4regexp_p: needs c++ limits include (instead of plain c
++ limit.h)
++MIME-Version: 1.0
++Content-Type: text/plain; charset=UTF-8
++Content-Transfer-Encoding: 8bit
++
++Fixes gcc-11 compile:
++
++  In file included from jsruntime/qv4regexp_p.h:62,
++                   from jsruntime/qv4regexp.cpp:40:
++  ../3rdparty/masm/yarr/Yarr.h:46:44: error: ‘numeric_limits’ is not a member of ‘std’
++     46 | static const unsigned offsetNoMatch = std::numeric_limits<unsigned>::max();
++        |                                            ^~~~~~~~~~~~~~
++  ../3rdparty/masm/yarr/Yarr.h:46:59: error: expected primary-expression before ‘unsigned’
++     46 | static const unsigned offsetNoMatch = std::numeric_limits<unsigned>::max();
++        |                                                           ^~~~~~~~
++
++Signed-off-by: Peter Seiderer <ps.report@gmx.net>
++---
++ src/qml/jsruntime/qv4regexp_p.h | 2 +-
++ 1 file changed, 1 insertion(+), 1 deletion(-)
++
++diff --git a/src/qml/jsruntime/qv4regexp_p.h b/src/qml/jsruntime/qv4regexp_p.h
++index 6afb10ea95..c64f3d3c38 100644
++--- a/src/qml/jsruntime/qv4regexp_p.h
+++++ b/src/qml/jsruntime/qv4regexp_p.h
++@@ -57,7 +57,7 @@
++ #include <wtf/FastAllocBase.h>
++ #include <wtf/BumpPointerAllocator.h>
++ 
++-#include <limits.h>
+++#include <limits>
++ 
++ #include <yarr/Yarr.h>
++ #include <yarr/YarrInterpreter.h>
++-- 
++2.32.0
++
+diff --git a/package/qt5/qt5declarative/0003-qqmlprofilerevent_p-needs-c-limits-inlcude-fixes-gcc.patch b/package/qt5/qt5declarative/0003-qqmlprofilerevent_p-needs-c-limits-inlcude-fixes-gcc.patch
+new file mode 100644
+index 00000000000..0e6da652f95
+--- /dev/null
++++ b/package/qt5/qt5declarative/0003-qqmlprofilerevent_p-needs-c-limits-inlcude-fixes-gcc.patch
+@@ -0,0 +1,45 @@
++From cc8d62f556c065d28a52e4b784b5d22f2cca3001 Mon Sep 17 00:00:00 2001
++From: Peter Seiderer <ps.report@gmx.net>
++Date: Thu, 22 Jul 2021 23:13:43 +0200
++Subject: [PATCH] qqmlprofilerevent_p: needs c++ limits inlcude (fixes gcc-11
++ compile)
++MIME-Version: 1.0
++Content-Type: text/plain; charset=UTF-8
++Content-Transfer-Encoding: 8bit
++
++Fixes:
++
++  In file included from qqmlprofilertypedevent_p.h:43,
++                   from qqmlprofilertypedevent.cpp:40:
++  qqmlprofilerevent_p.h: In member function ‘void QQmlProfilerEvent::assignNumbers(const Container&)’:
++  qqmlprofilerevent_p.h:314:65: error: ‘numeric_limits’ is not a member of ‘std’
++    314 |                     static_cast<quint16>(numbers.size()) : std::numeric_limits<quint16>::max();
++        |                                                                 ^~~~~~~~~~~~~~
++  qqmlprofilerevent_p.h:314:87: error: expected primary-expression before ‘>’ token
++    314 |                     static_cast<quint16>(numbers.size()) : std::numeric_limits<quint16>::max();
++        |                                                                                       ^
++  qqmlprofilerevent_p.h:314:90: error: ‘::max’ has not been declared; did you mean ‘std::max’?
++    314 |                     static_cast<quint16>(numbers.size()) : std::numeric_limits<quint16>::max();
++        |                                                                                          ^~~
++        |                                                                                          std::max
++
++Signed-off-by: Peter Seiderer <ps.report@gmx.net>
++---
++ src/qmldebug/qqmlprofilerevent_p.h | 1 +
++ 1 file changed, 1 insertion(+)
++
++diff --git a/src/qmldebug/qqmlprofilerevent_p.h b/src/qmldebug/qqmlprofilerevent_p.h
++index a7e37d1964..01b2f58f16 100644
++--- a/src/qmldebug/qqmlprofilerevent_p.h
+++++ b/src/qmldebug/qqmlprofilerevent_p.h
++@@ -48,6 +48,7 @@
++ #include <QtCore/qmetatype.h>
++ 
++ #include <initializer_list>
+++#include <limits>
++ #include <type_traits>
++ 
++ //
++-- 
++2.32.0
++
