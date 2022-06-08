@@ -38,19 +38,28 @@ These are just my own notes and findings in the original firmware.
 
 - Root filesystem built with buildroot 2021.02.10 (apparently erroneously `git describe`'d in firmware as `2021.02.9-83-g1f864943a0`), so this is what I'm using for my modifications as well
 - Incomplete list of pre-installed software on PRIME 4 firmware:
+  - alsa-utils 1.2.4
+  - busybox 1.33.2
+  - bzip2 1.0.8
+  - dfu-util 0.9
+  - flac 1.3.3
   - kmod 29 +ZSTD +XZ +ZLIB +LIBCRYPTO -EXPERIMENTAL
-  - fbset
+  - lame 3.100
   - libcap 2.48
   - libexpat 1.8.4
+  - libgpiod 1.6.3 with tools
   - libmali 14.0 (r1p0, without OpenCL)
   - libopenssl 1.1
   - libpng 16.37.0
   - libsamplerate 0.1.8
   - libzlib 1.2.11
+  - mpg123 1.25.15
   - OpenSSL 1.1
-  - systemd 247 -PAM -AUDIT -SELINUX -IMA -APPARMOR -SMACK -SYSVINIT -UTMP -LIBCRYPTSETUP -GCRYPT +GNUTLS -ACL +XZ -LZ4 +ZSTD -SECCOMP +BLKID +ELFUTILS +KMOD -IDN2 -IDN -PCRE2 default-hierarchy=hybrid
-  - zstd 1.4.9
+  - pixz 1.0.7
   - Qt5 framework installed to /usr/qt and loaded via `LD_LIBRARY_PATH=/usr/qt/lib`
+  - systemd 247 -PAM -AUDIT -SELINUX -IMA -APPARMOR -SMACK -SYSVINIT -UTMP -LIBCRYPTSETUP -GCRYPT +GNUTLS -ACL +XZ -LZ4 +ZSTD -SECCOMP +BLKID +ELFUTILS +KMOD -IDN2 -IDN -PCRE2 default-hierarchy=hybrid
+  - xz/liblzma 5.2.5
+  - zstd 1.4.9
   - …?
 - Engine
   - Installed in /usr/Engine
