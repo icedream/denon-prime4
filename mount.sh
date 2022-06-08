@@ -10,12 +10,17 @@ log_fatal() {
 }
 
 readonly=1
+listonly=0
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
   -w|--write)
     shift 1
     readonly=0
+    ;;
+  -l|--list)
+    shift 1
+    listonly=1
     ;;
   --)
     shift 1
@@ -64,8 +69,12 @@ mkdir engineos/sys/firmware/devicetree
 mount --bind -o ro devicetrees/JC11 engineos/sys/firmware/devicetree
 mount -t tmpfs tmp engineos/tmp
 
-if [ "$#" -lt 1 ]
-then
+if [ "$listonly" -ne 0 ]; then
+  (cd engineos && find -xdev)
+  exit
+fi
+
+if [ "$#" -lt 1 ]; then
   set -- sh -i
 fi
 chroot engineos sh -c "export LC_ALL=C; unset LANGUAGE; exec \"\$@\"" -- "$@"

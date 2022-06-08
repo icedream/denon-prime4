@@ -1,127 +1,45 @@
 #!/bin/bash -e
-packages=(
-  #busybox
-  cairo
-  chocolate-doom
-  #dbus
-  #dbus-glib
-  doom-wad
-  elfutils
-  #expat
-  #fbset
-  fontconfig
-  freetype
-  glibc
-  #host-gcc-final
-  jpeg-turbo
-  #kmod
-  #libcap
-  libdrm
-  libevdev
-  libffi
-  libglib2
-  libinput
-  #libopenssl
-  libpciaccess
-  libpng
-  libpthread-stubs
-  #libsamplerate
-  libxcb
-  libxkbcommon
-  libxml2
-  #libzlib
-  #linux
-  lsof
-  ltrace
-  #mali-t76x # NOTE - wrong mali files? with this even Engine fails to start due to incompatible GPU
-  matchbox
-  matchbox-common
-  matchbox-desktop
-  matchbox-fakekey
-  matchbox-keyboard
-  matchbox-lib
-  matchbox-panel
-  mcookie
-  mesa3d-demos
-  mtdev
-  nano
-  ncurses
-  openssh
-  #openssl
-  pcre
-  pixman
-  qt5
-  sdl2
-  sdl2_mixer
-  sdl2_net
-  #skeleton-init-common
-  #skeleton-init-systemd
-  strace
-  #systemd
-  #toolchain
-  #tzdata
-  util-linux
-  util-linux-libs
-  wayland
-  weston
-  xapp_xkbcomp
-  xapp_xrandr
-  xapp_xset
-  xapp_xsetroot
-  xcb-proto
-  xdata_xbitmaps
-  xdriver_xf86-input-keyboard
-  xdriver_xf86-input-libinput
-  xdriver_xf86-video-fbdev
-  xdriver_xf86-video-vesa
-  xfont_encodings
-  xfont_font-alias
-  xfont_font-cursor-misc
-  xfont_font-misc-misc
-  xkeyboard-config
-  xlib_libICE
-  xlib_libSM
-  xlib_libX11
-  xlib_libXau
-  xlib_libXcursor
-  xlib_libXdamage
-  xlib_libXdmcp
-  xlib_libXext
-  xlib_libXfixes
-  xlib_libXfont2
-  xlib_libXft
-  xlib_libXi
-  xlib_libXinerama
-  xlib_libXrandr
-  xlib_libXrender
-  xlib_libXres
-  xlib_libXtst
-  xlib_libXxf86vm
-  xlib_libfontenc
-  xlib_libxkbfile
-  xlib_libxshmfence
-  xlib_xtrans
-  xserver_xorg-server
-  #zlib
-)
+
+# read in packages for which we do not want to modify files already shipped with original firmware
+ignored_packages=()
+while read -r package; do
+  # remove comments
+  package="${package%\#*}"
+  # skip empty lines
+  if [ -z "$package" ]; then
+    continue
+  fi
+  ignored_packages+=("$package")
+done <package-ignorelist.txt
+
+is_ignored_package() {
+  for package in "${ignored_packages[@]}"; do
+    if [ "$package" = "$1" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
 
 filter_package_files() {
-  filter_str=''
-  for package in "${packages[@]}"; do
-    if [ -n "$filter_str" ]; then
-      filter_str="$filter_str"'\|'
+  while read -r package filepath; do
+    if is_ignored_package "$package"; then
+      # file from a ignored package, skip
+      continue
     fi
-    filter_str="$filter_str"'^'"$package,"
-  done
-
-  grep "$filter_str" | tr ',' ' ' | awk '{print $2}'
+    if [ ! -f buildroot/*/output/target/"$filepath" ]; then
+      # file is not included in actual generated rootfs (e.g. header/docs/...), skip
+      continue
+    fi
+    echo "$filepath"
+  done < <(grep "$filter_str" | tr ',' ' ')
 }
 
 # remove spaces since buildroot does not like that
 export PATH="${PATH// /}"
 
-./clone-buildroot.sh
-make -C buildroot/*/ -j$(nproc)
+#./clone-buildroot.sh
+#make -C buildroot/*/ -j$(nproc)
 tar -c -v -C buildroot/*/output/target/ --owner=root --group=root \
 	$(cat buildroot/*/output/build/packages-file-list.txt | filter_package_files) \
 	| \
