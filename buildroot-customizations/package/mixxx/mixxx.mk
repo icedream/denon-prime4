@@ -5,7 +5,8 @@ MIXXX_SITE = $(call github,mixxxdj,mixxx,$(MIXXX_VERSION))
 MIXXX_INSTALL_STAGING = NO
 MIXXX_INSTALL_TARGET = YES
 MIXXX_LICENSE = GPLv2
-# MIXXX_CONF_OPTS = -DCMAKE_INSTALL_PREFIX=/usr
+# disable symlinks to avoid "failed to create symbolic link '…/src/test' because existing path cannot be removed: Is a directory"
+MIXXX_CONF_OPTS = -DUSE_SYMLINKS=OFF
 # MIXXX_DEPENDENCIES = \
 # 	protobuf vamp-plugin-sdk rubberband soundtouch \
 # 	libid3tag taglib \
