@@ -1,0 +1,5 @@
+config BR2_PACKAGE_MIXXX
+	bool "Mixxx"
+	depends on BR2_PACKAGE_OPENJDK
+	help
+	  Installs Mixxx, an open-source DJ software.
