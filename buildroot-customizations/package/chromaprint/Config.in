@@ -1,0 +1,4 @@
+config BR2_PACKAGE_CHROMAPRINT
+    bool "chromaprint"
+    help
+        Installs Chromaprint, a C library for generating audio fingerprints used by AcoustID.

@@ -3,6 +3,7 @@ config BR2_PACKAGE_MIXXX
     depends on BR2_PACKAGE_HAS_UDEV # hidapi
     depends on BR2_PACKAGE_QT5
     depends on BR2_PACKAGE_QT5_JSCORE_AVAILABLE # qt5declarative
+    select BR2_PACKAGE_CHROMAPRINT
     select BR2_PACKAGE_FAAD2
     select BR2_PACKAGE_FLAC
     select BR2_PACKAGE_LAME
