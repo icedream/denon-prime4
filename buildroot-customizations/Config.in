@@ -1,4 +1,5 @@
 source "$BR2_EXTERNAL_MIXXX_PATH/package/chromaprint/Config.in"
+source "$BR2_EXTERNAL_MIXXX_PATH/package/libkeyfinder/Config.in"
 source "$BR2_EXTERNAL_MIXXX_PATH/package/mixxx/Config.in"
 source "$BR2_EXTERNAL_MIXXX_PATH/package/portmidi/Config.in"
 source "$BR2_EXTERNAL_MIXXX_PATH/package/rubberband/Config.in"

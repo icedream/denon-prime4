@@ -47,6 +47,10 @@ ifeq ($(BR2_PACKAGE_LIBID3TAG),y)
 MIXXX_DEPENDENCIES += libid3tag
 endif
 
+ifeq ($(BR2_PACKAGE_LIBKEYFINDER),y)
+MIXXX_DEPENDENCIES += libkeyfinder
+endif
+
 ifeq ($(BR2_PACKAGE_LIBMAD),y)
 MIXXX_DEPENDENCIES += libmad
 endif
