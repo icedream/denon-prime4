@@ -1,5 +1,6 @@
 config BR2_PACKAGE_MIXXX
     bool "mixxx"
+    depends on BR2_PACKAGE_FFMPEG || BR2_PACKAGE_FFTW_DOUBLE # chromaprint
     depends on BR2_PACKAGE_HAS_UDEV # hidapi
     depends on BR2_PACKAGE_QT5
     depends on BR2_PACKAGE_QT5_JSCORE_AVAILABLE # qt5declarative
@@ -34,3 +35,9 @@ config BR2_PACKAGE_MIXXX
     select BR2_PACKAGE_WAVPACK
     help
         Installs Mixxx, an open-source DJ software.
+
+comment "mixxx needs QT5 with declarative module for its JavaScript engine"
+    depends on !BR2_PACKAGE_QT5_JSCORE_AVAILABLE || !BR2_PACKAGE_QT5
+
+comment "mixxx needs hidapi/udev for talking to devices directly"
+    depends on !BR2_PACKAGE_HAS_UDEV
