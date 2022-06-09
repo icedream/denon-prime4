@@ -21,6 +21,7 @@ MIXXX_DEPENDENCIES = \
 	chromaprint \
 	hidapi \
 	libusb \
+	portmidi \
 	protobuf \
 	sqlite \
 	upower \
