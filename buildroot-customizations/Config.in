@@ -1,0 +1,1 @@
+source "$BR2_EXTERNAL_MIXXX_PATH/package/mixxx/Config.in"
