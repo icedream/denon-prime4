@@ -1,5 +1,8 @@
 config BR2_PACKAGE_QTKEYCHAIN
     bool "QtKeychain"
     depends on BR2_PACKAGE_QT5BASE
+    select BR2_PACKAGE_LIBSECRET
+    select BR2_PACKAGE_QT5TOOLS
+    select BR2_PACKAGE_QT5TOOLS_LINGUIST_TOOLS
     help
         Installs QtKeychain, a Qt API to store passwords and other secret data securely.

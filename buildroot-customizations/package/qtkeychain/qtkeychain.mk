@@ -4,6 +4,6 @@ QTKEYCHAIN_SITE = $(call github,frankosterfeld,qtkeychain,v$(QTKEYCHAIN_VERSION)
 QTKEYCHAIN_INSTALL_STAGING = YES
 QTKEYCHAIN_INSTALL_TARGET = YES
 QTKEYCHAIN_LICENSE = ModifiedBSD
-QTKEYCHAIN_DEPENDENCIES = qt5base
+QTKEYCHAIN_DEPENDENCIES = libsecret qt5base qt5tools
 
 $(eval $(cmake-package))
