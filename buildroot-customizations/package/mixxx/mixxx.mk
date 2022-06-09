@@ -1,6 +1,7 @@
 MIXXX_VERSION = 2.3.2
 MIXXX_SOURCE = mixxx-$(MIXXX_VERSION).tar.gz
 MIXXX_SITE = https://github.com/mixxxdj/mixxx/archive/refs/tags/$(MIXXX_VERSION).tar.gz
+MIXXX_SITE = $(call github,mixxxdj,mixxx,$(MIXXX_VERSION))
 MIXXX_INSTALL_STAGING = NO
 MIXXX_INSTALL_TARGET = YES
 MIXXX_LICENSE = GPLv2
@@ -17,6 +18,7 @@ MIXXX_LICENSE = GPLv2
 # 1. https://github.com/mixxxdj/mixxx/wiki/Compiling-On-Linux#arch--derivatives
 # 2. https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mixxx-git
 MIXXX_DEPENDENCIES = \
+	chromaprint \
 	hidapi \
 	libusb \
 	protobuf \
