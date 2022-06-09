@@ -29,7 +29,8 @@ MIXXX_DEPENDENCIES = \
 	qt5base \
 	qt5declarative \
 	qt5script \
-	qt5x11extras
+	qt5x11extras \
+	qtkeychain
 
 ifeq ($(BR2_PACKAGE_FAAD2),y)
 MIXXX_DEPENDENCIES += faad2
