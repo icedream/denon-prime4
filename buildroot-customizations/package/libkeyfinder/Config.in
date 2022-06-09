@@ -3,3 +3,5 @@ config BR2_PACKAGE_LIBKEYFINDER
     help
         Installs libkeyfinder, a small C++11 library for estimating the musical key of digital
         audio.
+    depends on BR2_PACKAGE_FFTW
+    depends on BR2_PACKAGE_FFTW_DOUBLE
