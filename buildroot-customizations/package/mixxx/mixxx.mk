@@ -17,29 +17,77 @@ MIXXX_LICENSE = GPLv2
 # 1. https://github.com/mixxxdj/mixxx/wiki/Compiling-On-Linux#arch--derivatives
 # 2. https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mixxx-git
 MIXXX_DEPENDENCIES = \
-	protobuf libsoundtouch \
-	libid3tag taglib \
-	libogg libmad mp4v2 faad2 opusfile \
-	libshout libsndfile portaudio \
-	sqlite upower \
-	qt5 qt5declarative qt5x11extras \
-	\
-	libebur128
+	hidapi \
+	libusb \
+	protobuf \
+	sqlite \
+	upower \
+	qt5 \
+	qt5declarative \
+	qt5x11extras
+
+ifeq ($(BR2_PACKAGE_FAAD2),y)
+MIXXX_DEPENDENCIES += faad2
+endif
 
 ifeq ($(BR2_PACKAGE_LAME),y)
 MIXXX_DEPENDENCIES += lame
 endif
 
-ifeq ($(BR2_PACKAGE_LIBVORBIS),y)
-MIXXX_DEPENDENCIES += libvorbis
+ifeq ($(BR2_PACKAGE_LIBEBUR128),y)
+MIXXX_DEPENDENCIES += libebur128
+endif
+
+ifeq ($(BR2_PACKAGE_LIBID3TAG),y)
+MIXXX_DEPENDENCIES += libid3tag
+endif
+
+ifeq ($(BR2_PACKAGE_LIBMAD),y)
+MIXXX_DEPENDENCIES += libmad
+endif
+
+ifeq ($(BR2_PACKAGE_LIBMODPLUG),y)
+MIXXX_DEPENDENCIES += libmodplug
+endif
+
+ifeq ($(BR2_PACKAGE_LIBOGG),y)
+MIXXX_DEPENDENCIES += libogg
+endif
+
+ifeq ($(BR2_PACKAGE_LIBSHOUT),y)
+MIXXX_DEPENDENCIES += libshout
+endif
+
+ifeq ($(BR2_PACKAGE_LIBSNDFILE),y)
+MIXXX_DEPENDENCIES += libsndfile
+endif
+
+ifeq ($(BR2_PACKAGE_LIBSOUNDTOUCH),y)
+MIXXX_DEPENDENCIES += libsoundtouch
 endif
 
 ifeq ($(BR2_PACKAGE_LIBTHEORA),y)
 MIXXX_DEPENDENCIES += libtheora
 endif
 
-ifeq ($(BR2_PACKAGE_LIBEBUR128),y)
-MIXXX_DEPENDENCIES += libebur128
+ifeq ($(BR2_PACKAGE_LIBVORBIS),y)
+MIXXX_DEPENDENCIES += libvorbis
+endif
+
+ifeq ($(BR2_PACKAGE_MP4V2),y)
+MIXXX_DEPENDENCIES += mp4v2
+endif
+
+ifeq ($(BR2_PACKAGE_OPUSFILE),y)
+MIXXX_DEPENDENCIES += opusfile
+endif
+
+ifeq ($(BR2_PACKAGE_PORTAUDIO),y)
+MIXXX_DEPENDENCIES += portaudio
+endif
+
+ifeq ($(BR2_PACKAGE_TAGLIB),y)
+MIXXX_DEPENDENCIES += taglib
 endif
 
 ifeq ($(BR2_PACKAGE_WAVPACK),y)
