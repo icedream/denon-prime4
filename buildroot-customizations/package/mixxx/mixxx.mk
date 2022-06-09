@@ -23,6 +23,7 @@ MIXXX_DEPENDENCIES = \
 	libusb \
 	portmidi \
 	protobuf \
+	rubberband \
 	sqlite \
 	upower \
 	qt5base \

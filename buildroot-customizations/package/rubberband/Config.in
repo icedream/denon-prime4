@@ -1,0 +1,4 @@
+config BR2_PACKAGE_RUBBERBAND
+    bool "rubberband"
+    help
+        Installs rubberband, an audio time-stretching and pitch-shifting library and utility program.
