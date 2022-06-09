@@ -1,0 +1,5 @@
+config BR2_PACKAGE_LIBKEYFINDER
+    bool "libkeyfinder"
+    help
+        Installs libkeyfinder, a small C++11 library for estimating the musical key of digital
+        audio.
