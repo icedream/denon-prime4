@@ -22,7 +22,7 @@ MIXXX_DEPENDENCIES = \
 	protobuf \
 	sqlite \
 	upower \
-	qt5 \
+	qt5base \
 	qt5declarative \
 	qt5x11extras
 
