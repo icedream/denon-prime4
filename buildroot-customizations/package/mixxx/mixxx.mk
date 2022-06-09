@@ -27,6 +27,7 @@ MIXXX_DEPENDENCIES = \
 	upower \
 	qt5base \
 	qt5declarative \
+	qt5script \
 	qt5x11extras
 
 ifeq ($(BR2_PACKAGE_FAAD2),y)
