@@ -18,22 +18,27 @@ MIXXX_CONF_OPTS = -DUSE_SYMLINKS=OFF
 # Dependency list put together from
 # 1. https://github.com/mixxxdj/mixxx/wiki/Compiling-On-Linux#arch--derivatives
 # 2. https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=mixxx-git
+# 3. CMakeLists.txt shipped with mixxx
 MIXXX_DEPENDENCIES = \
 	chromaprint \
 	hidapi \
+	lame \
 	libgl \
+	libogg \
+	libsndfile \
 	libusb \
+	libvorbis \
+	portaudio \
 	portmidi \
 	protobuf \
 	protobuf-c \
 	rubberband \
-	sqlite \
+	taglib \
 	upower \
 	qt5base \
 	qt5declarative \
 	qt5script \
 	qt5x11extras \
-	qtkeychain \
 	xlib_libICE \
 	xlib_libSM \
 	xlib_libXaw \
@@ -42,76 +47,120 @@ MIXXX_DEPENDENCIES = \
 	xlib_libXt \
 	xlib_libXtst \
 
-ifeq ($(BR2_PACKAGE_FAAD2),y)
-MIXXX_DEPENDENCIES += faad2
+ifeq ($(BR2_STATIC_DEPS),y)
+MIXXX_CONF_OPTS += -DSTATIC_LIBS=ON
 endif
 
-ifeq ($(BR2_PACKAGE_LAME),y)
-MIXXX_DEPENDENCIES += lame
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_FAAD),y)
+MIXXX_DEPENDENCIES += faad2 mp4v2
+MIXXX_CONF_OPTS += -DFAAD=ON
+else
+MIXXX_CONF_OPTS += -DFAAD=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_LIBEBUR128),y)
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_LIBEBUR128_DYNAMIC),y)
 MIXXX_DEPENDENCIES += libebur128
 endif
 
-ifeq ($(BR2_PACKAGE_LIBID3TAG),y)
-MIXXX_DEPENDENCIES += libid3tag
-endif
-
-ifeq ($(BR2_PACKAGE_LIBKEYFINDER),y)
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER),y)
+MIXXX_CONF_OPTS += -DKEYFINDER=ON
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER_DYNAMIC),y)
 MIXXX_DEPENDENCIES += libkeyfinder
+else
+MIXXX_DEPENDENCIES += fftw3
+endif
+else
+MIXXX_CONF_OPTS += -DKEYFINDER=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_LIBMAD),y)
-MIXXX_DEPENDENCIES += libmad
-endif
-
-ifeq ($(BR2_PACKAGE_LIBMODPLUG),y)
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_MODPLUG),y)
 MIXXX_DEPENDENCIES += libmodplug
 endif
 
-ifeq ($(BR2_PACKAGE_LIBOGG),y)
-MIXXX_DEPENDENCIES += libogg
-endif
-
-ifeq ($(BR2_PACKAGE_LIBSHOUT),y)
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_BROADCAST),y)
 MIXXX_DEPENDENCIES += libshout
 endif
 
-ifeq ($(BR2_PACKAGE_LIBSNDFILE),y)
-MIXXX_DEPENDENCIES += libsndfile
-endif
-
-ifeq ($(BR2_PACKAGE_LIBSOUNDTOUCH),y)
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_LIBSOUNDTOUCH_DYNAMIC),y)
 MIXXX_DEPENDENCIES += libsoundtouch
 endif
 
-ifeq ($(BR2_PACKAGE_LIBTHEORA),y)
-MIXXX_DEPENDENCIES += libtheora
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_LIBUSB),y)
+MIXXX_DEPENDENCIES += libusb hidapi
+MIXXX_CONF_OPTS += -DHID=ON -DBULK=ON
+else
+MIXXX_CONF_OPTS += -DHID=OFF -DBULK=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_LIBVORBIS),y)
-MIXXX_DEPENDENCIES += libvorbis
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_HIDAPI),y)
+MIXXX_DEPENDENCIES += libusb hidapi
+MIXXX_CONF_OPTS += -DHID=ON -DBULK=ON
+else
+MIXXX_CONF_OPTS += -DHID=OFF -DBULK=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_MP4V2),y)
-MIXXX_DEPENDENCIES += mp4v2
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_LILV),y)
+MIXXX_DEPENDENCIES += lilv
+MIXXX_CONF_OPTS += -DLILV=ON
+else
+MIXXX_CONF_OPTS += -DLILV=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_OPUSFILE),y)
-MIXXX_DEPENDENCIES += opusfile
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_MAD),y)
+MIXXX_DEPENDENCIES += libmad id3tag
+MIXXX_CONF_OPTS += -DMAD=ON
+else
+MIXXX_CONF_OPTS += -DMAD=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_PORTAUDIO),y)
-MIXXX_DEPENDENCIES += portaudio
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_MODPLUG),y)
+MIXXX_DEPENDENCIES += libmodplug
+MIXXX_CONF_OPTS += -DMODPLUG=ON
+else
+MIXXX_CONF_OPTS += -DMODPLUG=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_TAGLIB),y)
-MIXXX_DEPENDENCIES += taglib
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_OPUS),y)
+MIXXX_DEPENDENCIES += opus opusfile
+MIXXX_CONF_OPTS += -DOPUS=ON
+else
+MIXXX_CONF_OPTS += -DOPUS=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_WAVPACK),y)
+ifeq ($(BR2_PACKAGE_QTKEYCHAIN),y)
+MIXXX_DEPENDENCIES += qtkeychain
+MIXXX_CONF_OPTS += -DQTKEYCHAIN=ON
+else
+MIXXX_CONF_OPTS += -DQTKEYCHAIN=OFF
+endif
+
+ifeq ($(BR2_PACKAGE_QT5BASE_SQLITE_SYSTEM),y)
+MIXXX_DEPENDENCIES += sqlite
+endif
+
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_WAVPACK),y)
 MIXXX_DEPENDENCIES += wavpack
+MIXXX_CONF_OPTS += -DWAVPACK=ON
+else
+MIXXX_CONF_OPTS += -DWAVPACK=OFF
+endif
+
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_VINYLCONTROL),y)
+MIXXX_CONF_OPTS += -DVINYLCONTROL=ON
+else
+MIXXX_CONF_OPTS += -DVINYLCONTROL=OFF
+endif
+
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_BROADCAST),y)
+MIXXX_CONF_OPTS += -DBROADCAST=ON
+else
+MIXXX_CONF_OPTS += -DBROADCAST=OFF
+endif
+
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_LOCALECOMPARE),y)
+MIXXX_CONF_OPTS += -DLOCALECOMPARE=ON
+else
+MIXXX_CONF_OPTS += -DLOCALECOMPARE=OFF
 endif
 
 $(eval $(cmake-package))

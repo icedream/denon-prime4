@@ -1,0 +1,4 @@
+config BR2_PACKAGE_LV2
+    bool "lv2"
+    help
+        Installs lv2, a host library for LV2 plugins.
