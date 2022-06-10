@@ -1,0 +1,4 @@
+config BR2_PACKAGE_SORD
+    bool "sord"
+    help
+        Installs serd, a lightweight C library for storing RDF statements in memory.
