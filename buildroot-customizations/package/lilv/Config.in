@@ -3,5 +3,6 @@ config BR2_PACKAGE_LILV
     select BR2_PACKAGE_LV2
     select BR2_PACKAGE_SERD
     select BR2_PACKAGE_SORD
+    select BR2_PACKAGE_SRATOM
     help
         Installs lilv, a host library for LV2 plugins.
