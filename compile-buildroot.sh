@@ -55,7 +55,19 @@ export PATH="${PATH// /}"
 buildroot_path=$(echo buildroot/*/)
 buildroot_path=${buildroot_path%/}
 
-make -C buildroot/*/ -j$(nproc) BR2_EXTERNAL=../../buildroot-customizations
+failed=0
+for i in $(seq 1 20); do
+  if ! make -C buildroot/*/ -j$(nproc) BR2_EXTERNAL=../../buildroot-customizations; then
+    failed=$?
+    continue
+  fi
+  failed=0
+  break
+done
+if [ $failed -ne 0 ]; then
+  echo "ERROR: make failed after multiple attempts. Aborting." >&2
+  exit $failed
+fi
 filter_package_files <"${buildroot_path}/output/build/packages-file-list.txt" | \
 tar -c -C "${buildroot_path}/output/target/" --owner=root --group=root -T - |\
 sudo ./mount.sh --write tar -xp
