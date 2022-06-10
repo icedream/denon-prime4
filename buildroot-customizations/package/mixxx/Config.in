@@ -234,6 +234,13 @@ config BR2_PACKAGE_MIXXX_SUPPORT_LIBEBUR128_DYNAMIC
 
 endchoice
 
+config BR2_PACKAGE_MIXXX_INSTALL_USER_UDEV_RULES
+    bool "Install user udev rule file for USB HID and Bulk controllers"
+    default y
+    depends on BR2_PACKAGE_MIXXX_SUPPORT_HID || BR2_PACKAGE_MIXXX_SUPPORT_BULK
+    help
+        Whether to install the udev rules for USB HID and Bulk controllers
+
 endif
 
 comment "mixxx needs chromaprint"
