@@ -1,32 +1,37 @@
-config BR2_PACKAGE_MIXXX
+menuconfig BR2_PACKAGE_MIXXX
     bool "mixxx"
-    depends on BR2_PACKAGE_FFMPEG || BR2_PACKAGE_FFTW_DOUBLE # chromaprint
+    help
+        Installs Mixxx, an open-source DJ software.
+
     depends on BR2_PACKAGE_HAS_UDEV # hidapi
     depends on BR2_PACKAGE_QT5
     depends on BR2_PACKAGE_QT5_JSCORE_AVAILABLE # qt5declarative
+    depends on !BR2_PACKAGE_QT5BASE_SQLITE_NONE
+
+    # packages listed as REQUIRED in CMakeLists.txt
     depends on BR2_PACKAGE_HAS_LIBGL # libglu
+	depends on BR2_USE_MMU # libglib2
+	depends on BR2_USE_WCHAR # libglib2
+	depends on BR2_TOOLCHAIN_HAS_THREADS # libglib2
+	depends on BR2_TOOLCHAIN_USES_GLIBC
     select BR2_PACKAGE_CHROMAPRINT
-    select BR2_PACKAGE_FAAD2
+	select BR2_PACKAGE_LIBGLIB2
     select BR2_PACKAGE_FLAC
     select BR2_PACKAGE_LAME
-    select BR2_PACKAGE_HIDAPI
-    select BR2_PACKAGE_LIBID3TAG
-    select BR2_PACKAGE_LIBGLU
     select BR2_PACKAGE_LIBOGG
-    select BR2_PACKAGE_LIBMAD
-    select BR2_PACKAGE_LIBSHOUT
     select BR2_PACKAGE_LIBSNDFILE
-    select BR2_PACKAGE_LIBTHEORA
-    select BR2_PACKAGE_LIBUSB
-    select BR2_PACKAGE_MP4V2
-    select BR2_PACKAGE_MPG123
-    select BR2_PACKAGE_OPUSFILE
+    select BR2_PACKAGE_LIBVORBIS
     select BR2_PACKAGE_PORTAUDIO
     select BR2_PACKAGE_PORTMIDI
-    select BR2_PACKAGE_PROTOBUF
-    select BR2_PACKAGE_PROTOBUF_C
+    select BR2_PACKAGE_QT5BASE_CONCURRENT
+    select BR2_PACKAGE_QT5BASE_DBUS
     select BR2_PACKAGE_QT5BASE_GUI
+    select BR2_PACKAGE_QT5BASE_NETWORK
+    select BR2_PACKAGE_QT5BASE_OPENGL
+    select BR2_PACKAGE_QT5BASE_TEST
+    select BR2_PACKAGE_QT5BASE_WIDGETS
     select BR2_PACKAGE_QT5BASE_XCB
+    select BR2_PACKAGE_QT5BASE_XML
     select BR2_PACKAGE_QT5DECLARATIVE
     select BR2_PACKAGE_QT5DECLARATIVE_QUICK
     select BR2_PACKAGE_QT5QUICKCONTROLS
@@ -34,24 +39,212 @@ config BR2_PACKAGE_MIXXX
     select BR2_PACKAGE_QT5SCRIPT
     select BR2_PACKAGE_QT5SVG
     select BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_QTKEYCHAIN
     select BR2_PACKAGE_RUBBERBAND
-    select BR2_PACKAGE_SQLITE
     select BR2_PACKAGE_TAGLIB
     select BR2_PACKAGE_UPOWER
-    select BR2_PACKAGE_WAVPACK
-    select BR2_PACKAGE_XLIB_LIBICE
-    select BR2_PACKAGE_XLIB_LIBSM
-    select BR2_PACKAGE_XLIB_LIBXAW
-    select BR2_PACKAGE_XLIB_LIBXMU
-    select BR2_PACKAGE_XLIB_LIBXPM
-    select BR2_PACKAGE_XLIB_LIBXT
-    select BR2_PACKAGE_XLIB_LIBXTST
-    help
-        Installs Mixxx, an open-source DJ software.
 
-comment "mixxx needs QT5 with declarative module for its JavaScript engine"
-    depends on !BR2_PACKAGE_QT5_JSCORE_AVAILABLE || !BR2_PACKAGE_QT5
+    # qt5 x11 dependencies?
+    select BR2_PACKAGE_LIBGLU if BR2_PACKAGE_QT5X11EXTRAS
+    select BR2_PACKAGE_XLIB_LIBICE if BR2_PACKAGE_QT5X11EXTRAS
+    select BR2_PACKAGE_XLIB_LIBSM if BR2_PACKAGE_QT5X11EXTRAS
+    select BR2_PACKAGE_XLIB_LIBXAW if BR2_PACKAGE_QT5X11EXTRAS
+    select BR2_PACKAGE_XLIB_LIBXMU if BR2_PACKAGE_QT5X11EXTRAS
+    select BR2_PACKAGE_XLIB_LIBXPM if BR2_PACKAGE_QT5X11EXTRAS
+    select BR2_PACKAGE_XLIB_LIBXT if BR2_PACKAGE_QT5X11EXTRAS
+    select BR2_PACKAGE_XLIB_LIBXTST if BR2_PACKAGE_QT5X11EXTRAS
+
+    # Mixxx has shipped protobuf stuff but idk if it works like that in buildroot…?
+    select BR2_PACKAGE_PROTOBUF
+    select BR2_PACKAGE_PROTOBUF_C
+
+    # Deps for building keyfinder source
+    select BR2_PACKAGE_FFTW if BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER_STATIC
+    select BR2_PACKAGE_FFTW_DOUBLE if BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER_STATIC
+
+    # optional features
+    select BR2_PACKAGE_FAAD2 if BR2_PACKAGE_MIXXX_SUPPORT_DECODING_AAC
+    select BR2_PACKAGE_HIDAPI if BR2_PACKAGE_MIXXX_SUPPORT_USB_HID_CONTROLLER
+    select BR2_PACKAGE_KEYFINDER if BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER_DYNAMIC
+    select BR2_PACKAGE_FFMPEG if BR2_PACKAGE_MIXXX_SUPPORT_FFMPEG
+    select BR2_PACKAGE_LIBID3TAG if BR2_PACKAGE_MIXXX_SUPPORT_MAD
+    select BR2_PACKAGE_LIBMAD if BR2_PACKAGE_MIXXX_SUPPORT_MAD
+    select BR2_PACKAGE_LIBSHOUT if BR2_PACKAGE_MIXXX_SUPPORT_BROADCAST
+    select BR2_PACKAGE_LIBSOUNDTOUCH if BR2_PACKAGE_MIXXX_SUPPORT_LIBSOUNDTOUCH_DYNAMIC
+    select BR2_PACKAGE_LIBUSB if BR2_PACKAGE_MIXXX_SUPPORT_USB_BULK_CONTROLLER
+    select BR2_PACKAGE_LILV if BR2_PACKAGE_MIXXX_SUPPORT_LILV
+    select BR2_PACKAGE_MP4V2 if BR2_PACKAGE_MIXXX_SUPPORT_DECODING_AAC
+    select BR2_PACKAGE_OPUS if BR2_PACKAGE_MIXXX_SUPPORT_OPUS
+    select BR2_PACKAGE_OPUSFILE if BR2_PACKAGE_MIXXX_SUPPORT_OPUS
+    select BR2_PACKAGE_QTKEYCHAIN if BR2_PACKAGE_MIXXX_SUPPORT_QTKEYCHAIN
+    select BR2_PACKAGE_WAVPACK if BR2_PACKAGE_MIXXX_SUPPORT_DECODING_WAVPACK
+
+if BR2_PACKAGE_MIXXX
+
+config BR2_PACKAGE_MIXXX_SUPPORT_QTKEYCHAIN
+    bool "Secure credentials storage support for Live Broadcasting profiles"
+    default y
+
+config BR2_PACKAGE_MIXXX_SUPPORT_VINYLCONTROL
+    bool "Vinyl Control support"
+    default y
+
+menuconfig BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER
+    bool "KeyFinder support"
+    help
+        Enable musical key detection through Mixxx's keyfinder library.
+    default y
+
+if BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER
+
+choice
+    prompt "KeyFinder linking"
+    default BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER_DYNAMIC
+    help
+        Select how to link in libkeyfinder
+
+config BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER_STATIC
+    bool "Link libkeyfinder statically"
+    help
+        Prepares Mixxx to download its own copy of libkeyfinder for building into Mixxx.
+
+config BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER_DYNAMIC
+    bool "Link libKeyFinder dynamically"
+    help
+        Enables build of libkeyfinder as a separate package and makes Mixxx link dynamically against it.
+
+endchoice
+
+endif
+
+choice
+    prompt "SoundTouch support"
+    default BR2_PACKAGE_MIXXX_SUPPORT_LIBSOUNDTOUCH_STATIC
+    help
+        Select how to link in libSoundTouch
+
+config BR2_PACKAGE_MIXXX_SUPPORT_LIBSOUNDTOUCH_STATIC
+    bool "Link libSoundTouch statically"
+    help
+        Prepares Mixxx to use included internal libSoundTouch source code copy.
+
+config BR2_PACKAGE_MIXXX_SUPPORT_LIBSOUNDTOUCH_DYNAMIC
+    bool "Link libSoundTouch dynamically"
+    help
+        Enables build of libSoundTouch as a separate package and makes Mixxx link dynamically against it.
+
+endchoice
+
+config BR2_PACKAGE_MIXXX_SUPPORT_FAAD
+    bool "FAAD MP4/AAC audio file decoder support"
+    help
+        Enable support for MP4/AAC files. This will build and link Mixxx against the mp4v2 and faad2 package.
+    default y
+
+config BR2_PACKAGE_MIXXX_SUPPORT_DL_FDKAAC
+    bool "Make FDK-AAC available to Mixxx"
+    help
+        This will enable fdk-aac to be provided in the file system for Mixxx to load dynamically.
+
+        Make sure you confirmed licenses to be compatible with your use case before enabling this.
+    select BR2_PACKAGE_FDKAAC
+    depends on BR2_PACKAGE_FDK_AAC_ARCH_SUPPORTS
+    depends on BR2_INSTALL_LIBSTDCPP
+    default n
+
+config BR2_PACKAGE_MIXXX_SUPPORT_DECODING_WAVPACK
+    bool "WavPack audio file decoder support"
+    help
+        Enable support for WavPack files. This will build and link Mixxx against the wavpack package.
+    default y
+
+config BR2_PACKAGE_MIXXX_SUPPORT_USB_HID_CONTROLLER
+    bool "USB HID controller support"
+    help
+        Enable support USB HID controllers. This will build and link Mixxx against the hidapi package.
+    default y
+
+config BR2_PACKAGE_MIXXX_SUPPORT_USB_BULK_CONTROLLER
+    bool "USB Bulk controller support"
+    default y
+    help
+        Enable support USB bulk controllers. This will build and link Mixxx against the libusb package.
+
+config BR2_PACKAGE_MIXXX_SUPPORT_FFMPEG
+    bool "FFmpeg support"
+    default n
+    help
+        Enable support for loading audio through ffmpeg.
+
+config BR2_PACKAGE_MIXXX_SUPPORT_LILV
+    bool "Lilv (LV2) support"
+    default y
+    help
+        Enable support for using LV2 plugins through lilv. This will build and link Mixxx against liblilv.
+
+config BR2_PACKAGE_MIXXX_SUPPORT_MAD
+    bool "MAD MP3 Decoder"
+    default y
+    help
+        Enable support for decoding mp3 files. This will build and link Mixxx against libmad and libid3tag.
+
+config BR2_PACKAGE_MIXXX_SUPPORT_BROADCAST
+    bool "Live Broadcasting (Shoutcast) support"
+    default y
+    help
+        Enables broadcasting via libshout.
+
+config BR2_PACKAGE_MIXXX_SUPPORT_OPUS
+    bool "Opus (RFC 6716) support"
+    default y
+    help
+        Enables support for decoding and encoding Opus audio files. This will build and link Mixxx against opus and opusfile.
+
+config BR2_PACKAGE_MIXXX_SUPPORT_LOCALECOMPARE
+    bool "Locale Aware Compare support for SQLite"
+    default n
+    depends on BR2_PACKAGE_SQLITE && !BR2_PACKAGE_QT5BASE_SQLITE_QT
+    help
+        Enables Locale Aware Compare functionality for SQLite which has an effect for search queries.
+
+comment "Locale Aware Compare support for SQLite can only be configured if Qt is linked against system-provided sqlite"
+    depends on BR2_PACKAGE_SQLITE && BR2_PACKAGE_QT5BASE_SQLITE_QT
+
+config BR2_PACKAGE_MIXXX_SUPPORT_MODPLUG
+    bool "Modplug module decoder support"
+    default y
+    select BR2_PACKAGE_LIBMODPLUG
+    help
+        Enables support for module tracker files. This will build and link Mixxx against libmodplug.
+
+choice
+    prompt "libebur128"
+    default BR2_PACKAGE_MIXXX_SUPPORT_LIBEBUR128_STATIC
+    help
+        Select how to link in libSoundTouch
+
+config BR2_PACKAGE_MIXXX_SUPPORT_LIBEBUR128_STATIC
+    bool "Link libebur128 statically"
+    help
+        Prepares Mixxx to use included internal libebur128 source code copy.
+
+config BR2_PACKAGE_MIXXX_SUPPORT_LIBEBUR128_DYNAMIC
+    bool "Link libebur128 dynamically"
+    help
+        Enables build of libebur128 as a separate package and makes Mixxx link dynamically against it.
+
+endchoice
+
+endif
+
+comment "mixxx needs chromaprint"
+    depends on !BR2_PACKAGE_CHROMAPRINT
+
+comment "mixxx needs a toolchain w/ wchar, threads"
+    depends on BR2_USE_MMU
+    depends on !BR2_USE_WCHAR || !BR2_TOOLCHAIN_HAS_THREADS
+    
+comment "mixxx needs QT5 w/ declarative and one of the SQLite modules"
+    depends on !BR2_PACKAGE_QT5_JSCORE_AVAILABLE || !BR2_PACKAGE_QT5 || BR2_PACKAGE_QT5BASE_SQLITE_NONE
 
 comment "mixxx needs libgl/libglu"
     depends on !BR2_PACKAGE_HAS_LIBGL

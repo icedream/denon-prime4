@@ -1,0 +1,5 @@
+config BR2_PACKAGE_LILV
+    bool "lilv"
+    select BR2_PACKAGE_LV2
+    help
+        Installs lilv, a host library for LV2 plugins.
