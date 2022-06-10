@@ -1,8 +1,15 @@
 config BR2_PACKAGE_QTKEYCHAIN
     bool "QtKeychain"
     depends on BR2_PACKAGE_QT5BASE
+    depends on BR2_TOOLCHAIN_HAS_THREADS # qt5dbus
+    depends on BR2_USE_MMU # qt5dbus
     select BR2_PACKAGE_LIBSECRET
+    select BR2_PACKAGE_QT5BASE_DBUS
     select BR2_PACKAGE_QT5TOOLS
     select BR2_PACKAGE_QT5TOOLS_LINGUIST_TOOLS
     help
         Installs QtKeychain, a Qt API to store passwords and other secret data securely.
+
+comment "QtKeychain needs toolchain w/ threads"
+    depends on BR2_USE_MMU
+    depends on !BR2_TOOLCHAIN_HAS_THREADS
