@@ -21,9 +21,11 @@ MIXXX_CONF_OPTS = -DUSE_SYMLINKS=OFF
 MIXXX_DEPENDENCIES = \
 	chromaprint \
 	hidapi \
+	libgl \
 	libusb \
 	portmidi \
 	protobuf \
+	protobuf-c \
 	rubberband \
 	sqlite \
 	upower \
@@ -31,7 +33,14 @@ MIXXX_DEPENDENCIES = \
 	qt5declarative \
 	qt5script \
 	qt5x11extras \
-	qtkeychain
+	qtkeychain \
+	xlib_libICE \
+	xlib_libSM \
+	xlib_libXaw \
+	xlib_libXmu \
+	xlib_libXpm \
+	xlib_libXt \
+	xlib_libXtst \
 
 ifeq ($(BR2_PACKAGE_FAAD2),y)
 MIXXX_DEPENDENCIES += faad2

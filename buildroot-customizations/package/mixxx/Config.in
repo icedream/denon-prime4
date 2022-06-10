@@ -4,12 +4,14 @@ config BR2_PACKAGE_MIXXX
     depends on BR2_PACKAGE_HAS_UDEV # hidapi
     depends on BR2_PACKAGE_QT5
     depends on BR2_PACKAGE_QT5_JSCORE_AVAILABLE # qt5declarative
+    depends on BR2_PACKAGE_HAS_LIBGL # libglu
     select BR2_PACKAGE_CHROMAPRINT
     select BR2_PACKAGE_FAAD2
     select BR2_PACKAGE_FLAC
     select BR2_PACKAGE_LAME
     select BR2_PACKAGE_HIDAPI
     select BR2_PACKAGE_LIBID3TAG
+    select BR2_PACKAGE_LIBGLU
     select BR2_PACKAGE_LIBOGG
     select BR2_PACKAGE_LIBMAD
     select BR2_PACKAGE_LIBSHOUT
@@ -22,6 +24,7 @@ config BR2_PACKAGE_MIXXX
     select BR2_PACKAGE_PORTAUDIO
     select BR2_PACKAGE_PORTMIDI
     select BR2_PACKAGE_PROTOBUF
+    select BR2_PACKAGE_PROTOBUF_C
     select BR2_PACKAGE_QT5BASE_GUI
     select BR2_PACKAGE_QT5BASE_XCB
     select BR2_PACKAGE_QT5DECLARATIVE
@@ -37,11 +40,21 @@ config BR2_PACKAGE_MIXXX
     select BR2_PACKAGE_TAGLIB
     select BR2_PACKAGE_UPOWER
     select BR2_PACKAGE_WAVPACK
+    select BR2_PACKAGE_XLIB_LIBICE
+    select BR2_PACKAGE_XLIB_LIBSM
+    select BR2_PACKAGE_XLIB_LIBXAW
+    select BR2_PACKAGE_XLIB_LIBXMU
+    select BR2_PACKAGE_XLIB_LIBXPM
+    select BR2_PACKAGE_XLIB_LIBXT
+    select BR2_PACKAGE_XLIB_LIBXTST
     help
         Installs Mixxx, an open-source DJ software.
 
 comment "mixxx needs QT5 with declarative module for its JavaScript engine"
     depends on !BR2_PACKAGE_QT5_JSCORE_AVAILABLE || !BR2_PACKAGE_QT5
+
+comment "mixxx needs libgl/libglu"
+    depends on !BR2_PACKAGE_HAS_LIBGL
 
 comment "mixxx needs hidapi/udev for talking to devices directly"
     depends on !BR2_PACKAGE_HAS_UDEV
