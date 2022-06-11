@@ -68,6 +68,16 @@ if [ $failed -ne 0 ]; then
   echo "ERROR: make failed after multiple attempts. Aborting." >&2
   exit $failed
 fi
+# delete Engine, SoundSwitch and Qt files from original firmware
+sudo ./mount.sh --write rm -rf \
+  /etc/systemd/system/engine.service \
+  /root/.screenrc \
+  /usr/Engine \
+  /usr/mkspecs \
+  /usr/qml \
+  /usr/qt \
+  /usr/share/Akai \
+  /usr/SoundSwitch
 filter_package_files <"${buildroot_path}/output/build/packages-file-list.txt" | \
 tar -c -C "${buildroot_path}/output/target/" --owner=root --group=root -T - |\
 sudo ./mount.sh --write tar -xp
