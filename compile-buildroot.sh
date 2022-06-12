@@ -55,7 +55,20 @@ export PATH="${PATH// /}"
 buildroot_path=$(echo buildroot/*/)
 buildroot_path=${buildroot_path%/}
 
-make -C buildroot/*/ -j$(nproc) BR2_EXTERNAL=../../buildroot-customizations
+make_flags=(
+  -C "${buildroot_path}"
+  BR2_EXTERNAL=../../buildroot-customizations
+)
+
+if [ -n "${BR2_JLEVEL:-}" ]; then
+  make_flags+=(BR2_JLEVEL="${BR2_JLEVEL}")
+fi
+
+if [ -n "${BR2_CCACHE_DIR:-}" ]; then
+  make_flags+=(BR2_CCACHE_DIR="${BR2_CCACHE_DIR}")
+fi
+
+make "${make_flags[@]}"
 filter_package_files <"${buildroot_path}/output/build/packages-file-list.txt" | \
 tar -c -C "${buildroot_path}/output/target/" --owner=root --group=root -T - |\
 sudo ./mount.sh --write tar -xp
