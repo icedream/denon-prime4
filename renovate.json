@@ -1,5 +1,30 @@
 {
   "extends": [
     "config:base"
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": [
+        "(^|/).*\\.mk$"
+      ],
+      "matchStrings": [
+        "(?<depName>[A-Z0-9_]+)_VERSION\\s*=\\s*[\"'](?<currentValue>[a-zA-Z0-9-._]+)[\"']"
+      ],
+      "versioningTemplate": "loose",
+      "datasourceTemplate": "repology",
+      "packageNameTemplate": "homebrew/{{{ (lowercase depName) }}}"
+    },
+    {
+      "fileMatch": [
+        "(^|/).*\\.mk$"
+      ],
+      "matchStrings": [
+        "QTKEYCHAIN_VERSION\\s*=\\s*[\"'](?<currentValue>[a-zA-Z0-9-._]+)[\"']"
+      ],
+      "depNameTemplate": "qtkeychain",
+      "versioningTemplate": "loose",
+      "datasourceTemplate": "repology",
+      "packageNameTemplate": "alpine_edge/qt5-qtkeychain"
+    }
   ]
 }
