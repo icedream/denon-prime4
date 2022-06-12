@@ -12,6 +12,11 @@ jobs:
   build:
     runs-on: [ self-hosted, ubuntu ]
 
+    strategy:
+      matrix:
+        model:
+          - JC11
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Install dependencies
@@ -32,6 +37,19 @@ jobs:
             unzip \
             wget \
             xz-utils
+      - name: Set up caching for buildroot downloads
+        uses: actions/cache@v1
+        with:
+          path: ~/buildroot-dl
+          key: buildroot-dl
+      - name: Set up ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.model }}
+      - name: Set up environment for buildroot
+        run: |
+          export BR2_CCACHE=y
+          export BR2_DL_DIR="$HOME/buildroot-dl"
       - name: Set up Git for patching
         run: |
           git config --global user.name "Buildroot"
