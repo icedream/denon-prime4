@@ -18,14 +18,19 @@ jobs:
         run: |
           sudo apt-get update
           DEBIAN_FRONTEND=noninteractive sudo apt-get install -y \
+            bc \
             binfmt-support \
             build-essential \
+            cpio \
             e2tools \
             file \
             git \
             p7zip-full \
             qemu-user-static \
+            rsync \
             u-boot-tools \
+            unzip \
+            wget \
             xz-utils
       - name: Set up Git for patching
         run: |
