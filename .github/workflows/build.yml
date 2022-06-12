@@ -22,6 +22,7 @@ jobs:
             build-essential \
             e2tools \
             git \
+            p7zip-full \
             qemu-user-static \
             u-boot-tools \
             xz-utils
