@@ -26,6 +26,10 @@ jobs:
             qemu-user-static \
             u-boot-tools \
             xz-utils
+      - name: Set up Git for patching
+        run: |
+          git config --global user.name "Buildroot"
+          git config --global user.email "buildroot@icedream.pw"
       - uses: actions/checkout@v3
       - name: Run dist script
         run: ./dist.sh
