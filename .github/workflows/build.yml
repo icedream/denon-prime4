@@ -21,6 +21,7 @@ jobs:
             binfmt-support \
             build-essential \
             e2tools \
+            file \
             git \
             p7zip-full \
             qemu-user-static \
