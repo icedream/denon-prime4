@@ -39,7 +39,7 @@ jobs:
           retention_days: 3
           name: firmware-image
           path: '*.dtb'
-      - name: Upload image as artifact
+      - name: Upload updater tool as artifact
         uses: actions/upload-artifact@v3
         with:
           retention_days: 3
