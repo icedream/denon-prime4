@@ -8,11 +8,12 @@
         "(^|/).*\\.mk$"
       ],
       "matchStrings": [
-        "(?<depName>[A-Z0-9_]+)_VERSION\\s*=\\s*[\"'](?<currentValue>[a-zA-Z0-9-._]+)[\"']"
+        "(?<depNameUppercase>[A-Z0-9_]+)_VERSION\\s*=\\s*[\"'](?<currentValue>[a-zA-Z0-9-._]+)[\"']"
       ],
+      "depNameTemplate": "{{{ lowercase depNameUppercase }}}",
       "versioningTemplate": "loose",
       "datasourceTemplate": "repology",
-      "packageNameTemplate": "homebrew/{{{ lowercase depName }}}"
+      "packageNameTemplate": "homebrew/{{{ depName }}}"
     },
     {
       "fileMatch": [
