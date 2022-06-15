@@ -13,7 +13,7 @@
       "depNameTemplate": "{{{ lowercase depNameUppercase }}}",
       "versioningTemplate": "loose",
       "datasourceTemplate": "repology",
-      "packageNameTemplate": "homebrew/{{{ depName }}}"
+      "packageNameTemplate": "homebrew/{{{ lowercase depNameUppercase }}}"
     },
     {
       "fileMatch": [
