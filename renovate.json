@@ -8,7 +8,7 @@
         "\\.mk$"
       ],
       "matchStrings": [
-        "(?<depNameUppercase>[A-Z0-9_]+)_VERSION\\s*=\\s*[\"'](?<currentValue>[a-zA-Z0-9-._]+)[\"']"
+        "(?<depNameUppercase>[A-Z0-9_]+)_VERSION\\s*=\\s*[\"']?(?<currentValue>[a-zA-Z0-9-._]+)[\"']?"
       ],
       "depNameTemplate": "{{{ lowercase depNameUppercase }}}",
       "versioningTemplate": "loose",
@@ -20,7 +20,7 @@
         "\\.mk$"
       ],
       "matchStrings": [
-        "QTKEYCHAIN_VERSION\\s*=\\s*[\"'](?<currentValue>[a-zA-Z0-9-._]+)[\"']"
+        "QTKEYCHAIN_VERSION\\s*=\\s*[\"']?(?<currentValue>[a-zA-Z0-9-._]+)[\"']?"
       ],
       "depNameTemplate": "qtkeychain",
       "versioningTemplate": "loose",
