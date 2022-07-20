@@ -5,7 +5,7 @@
   "regexManagers": [
     {
       "fileMatch": [
-        "(^|/).*\\.mk$"
+        "\\.mk$"
       ],
       "matchStrings": [
         "(?<depNameUppercase>[A-Z0-9_]+)_VERSION\\s*=\\s*[\"'](?<currentValue>[a-zA-Z0-9-._]+)[\"']"
@@ -17,7 +17,7 @@
     },
     {
       "fileMatch": [
-        "(^|/).*\\.mk$"
+        "\\.mk$"
       ],
       "matchStrings": [
         "QTKEYCHAIN_VERSION\\s*=\\s*[\"'](?<currentValue>[a-zA-Z0-9-._]+)[\"']"
