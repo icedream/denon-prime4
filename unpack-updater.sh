@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-prime4_updater_win_download_url="https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.1/Release/EOS/7f52008ad1/Prime+4+2.2.1+Updater.exe"
+prime4_updater_win_download_url="https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/Prime+4+2.2.2+Updater.exe"
 prime4_updater_win_download_filename="${prime4_updater_win_download_url##*/}"
 
 log() {

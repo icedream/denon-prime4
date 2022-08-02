@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-prime4_update_download_url="https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.1/Release/EOS/7f52008ad1/PRIME4-2.2.1-Update.img"
+prime4_update_download_url="https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/PRIME4-2.2.2-Update.img"
 prime4_update_download_filename="${prime4_update_download_url##*/}"
 
 log() {
