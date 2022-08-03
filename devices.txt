@@ -1,2 +1,9 @@
+numark mixtrackpro NH08 https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/MIXSTREAMPRO-2.2.2-Update.img https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/Mixstream+Pro+2.2.2+Updater.exe
 denon prime4 JC11 https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/PRIME4-2.2.2-Update.img https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/Prime+4+2.2.2+Updater.exe
+denon primego JP11 https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/PRIMEGO-2.2.2-Update.img https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/Prime+GO+2.2.2+Updater.exe
+denon prime2 JC16 https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/PRIME2-2.2.2-Update.img https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/Prime+2+2.2.2+Updater.exe
+denon sc6000prime JP13 https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/SC6000-2.2.2-Update.img https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/SC6000+Prime+2.2.2+Updater.exe
+denon sc6000mprime JP14 https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/SC6000M-2.2.2-Update.img https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/SC6000M+Prime+2.2.2+Updater.exe
+denon sc5000prime JP07 https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/SC5000-2.2.2-Update.img https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/SC5000+Prime+2.2.2+Updater.exe
+denon sc5000mprime JP08 https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/SC5000M-2.2.2-Update.img https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/SC5000M+Prime+2.2.2+Updater.exe
 
