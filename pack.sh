@@ -34,6 +34,6 @@ for file in "${files[@]}"; do
 
   dtb="$(basename "$file" .dts).dtb"
 
-  log "*** Converting $file to $dtb"
-  dtc -I dts -O dtb "$file" > "$dtb"
+  log "*** Generating FIT $dtb"
+  mkimage -f "$file" "$dtb"
 done

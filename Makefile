@@ -33,4 +33,4 @@ unpacked-img/%.img.xz.sha1: unpacked-img/%.img.xz
 	sha1sum $< | awk '{print $$1}' | xxd -r -p >$@
 
 %.dtb: %.dts
-	dtc -I dts -O dtb $< >$@
+	mkimage -f $< $@
