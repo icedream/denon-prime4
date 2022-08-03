@@ -1,0 +1,2 @@
+denon prime4 JC11 https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/PRIME4-2.2.2-Update.img https://imb-cicd-public.s3.amazonaws.com/Engine/2.2.2/Release/EOS/435be138f0/Prime+4+2.2.2+Updater.exe
+

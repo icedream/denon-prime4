@@ -1,20 +1,9 @@
-#!/bin/sh -e
+#!/bin/bash
+
+. ./functions.sh
 
 lzma_sdk_url="https://www.7-zip.org/a/lzma2107.7z"
 lzma_sdk_filename="${lzma_sdk_url##*/}"
-
-log() {
-  echo "$@" >&2
-}
-
-log_fatal() {
-  echo "ERROR:" "$@" >&2
-  exit 1
-}
-
-log_warning() {
-  echo "WARNING:" "$@" >&2
-}
 
 if ! command -v 7z >/dev/null; then
   log_fatal "You need 7-zip installed (7z command seems to be missing)."

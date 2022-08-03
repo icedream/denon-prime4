@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+. ./functions.sh
+
 # read in packages for which we do not want to modify files already shipped with original firmware
 ignored_packages=()
 while read -r package; do

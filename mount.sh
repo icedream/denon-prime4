@@ -1,13 +1,6 @@
-#!/bin/sh -e
+#!/bin/bash
 
-log() {
-  echo "$@" >&2
-}
-
-log_fatal() {
-  echo "ERROR:" "$@" >&2
-  exit 1
-}
+. ./functions.sh
 
 readonly=1
 listonly=0
@@ -42,8 +35,8 @@ then
 fi
 mount_options="${mount_options#,}"
 
-if [ ! -f unpacked-img/rootfs.img ]; then
-  log_fatal "You need to unpack the original firmware first (unpacked-img/rootfs.img seems to be missing)."
+if [ ! -f "${unpacked_img_dir}"/rootfs.img ]; then
+  log_fatal "You need to unpack the original firmware first ($unpacked_img_dir/rootfs.img seems to be missing)."
 fi
 
 mkdir -p engineos media/az01-internal
@@ -58,7 +51,7 @@ on_exit() {
   done
 }
 trap on_exit EXIT
-mount -o "$mount_options" unpacked-img/rootfs.img engineos
+mount -o "$mount_options" "${unpacked_img_dir}"/rootfs.img engineos
 mount --bind /dev engineos/dev
 mount --bind media engineos/media
 mount -t proc proc engineos/proc
