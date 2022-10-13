@@ -6,7 +6,7 @@ if ! command -v dtc >/dev/null; then
   log_fatal "dtc command seems to be missing. You need to install the device-tree-compiler for this script to work."
 fi
 
-files=("${prime4_update_download_filename}.dts")
+files=("${device_update_download_filename}.dts")
 
 files_to_delete=()
 on_exit() {
@@ -33,6 +33,9 @@ for file in "${files[@]}"; do
   fi
 
   dtb="$(basename "$file" .dts).dtb"
+
+  #log "*** Converting $file to $dtb"
+  #dtc -I dts -O dtb "$file" > "$dtb"
 
   log "*** Generating FIT $dtb"
   mkimage -f "$file" "$dtb"

@@ -6,7 +6,7 @@ if ! command -v dumpimage >/dev/null; then
   log_fatal "You need u-boot-tools installed (dumpimage command seems to be missing)."
 fi
 
-files=("${prime4_update_download_filename}")
+files=("${device_update_download_filename}")
 
 # Replaces the full data string with a reference to the extracted image file.
 patch_dts() {
@@ -18,9 +18,9 @@ patch_dts() {
 }
 
 download_firmware() {
-  log "*** Downloading ${prime4_update_download_filename}"
-  curl '-#Lo' "${prime4_update_download_filename}" "${prime4_update_download_url}"
-  files+=("${prime4_update_download_filename}")
+  log "*** Downloading ${device_update_download_filename}"
+  curl '-#Lo' "${device_update_download_filename}" "${device_update_download_url}"
+  files+=("${device_update_download_filename}")
 }
 
 for file in "${files[@]}"; do
