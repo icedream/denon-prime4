@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/bin/bash
+
+set -e
 
 (
     cd buildroot/*/
@@ -22,6 +24,6 @@
         -or -name .stamp_staging_installed \
         -or -name .root \
         -or -name '.br2-external*' \
-    \) -and -not -path '*/host-*/*' -delete
+        \) -and -not -path '*/host-*/*' -delete
     # rm -f output/build/host-gcc-final-*/.stamp_host_installed
 )

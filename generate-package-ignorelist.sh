@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+
+. ./functions.sh
 
 sudo ./mount.sh --list >file-list.txt
 while read -r package filepath; do

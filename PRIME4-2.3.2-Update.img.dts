@@ -1,11 +1,11 @@
 /dts-v1/;
 
 / {
-	timestamp = <0x6284101e>;
+	timestamp = <0x6320afd8>;
 	description = "JC11 upgrade image";
 	compatible = "inmusic,jc11";
 	inmusic,devices = <0x15e4d008>;
-	inmusic,version = "2.2.1";
+	inmusic,version = "2.3.2";
 
 	images {
 
@@ -17,7 +17,6 @@
 
 			hash {
 				algo = "sha1";
-				value = /incbin/("unpacked-img/JC11/splash.img.xz.sha1");
 			};
 		};
 
@@ -29,7 +28,6 @@
 
 			hash {
 				algo = "sha1";
-				value = /incbin/("unpacked-img/JC11/recoverysplash.img.xz.sha1");
 			};
 		};
 
@@ -41,7 +39,6 @@
 
 			hash {
 				algo = "sha1";
-				value = /incbin/("unpacked-img/JC11/rootfs.img.xz.sha1");
 			};
 		};
 	};

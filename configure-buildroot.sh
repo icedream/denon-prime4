@@ -1,4 +1,5 @@
 #!/bin/bash -e
+
 #./clone-buildroot.sh
 cp -v buildroot-config/.config buildroot/*/
 

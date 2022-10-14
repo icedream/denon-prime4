@@ -1,0 +1,45 @@
+/dts-v1/;
+
+/ {
+	timestamp = <0x6320afd8>;
+	description = "JC16 upgrade image";
+	compatible = "inmusic,jc16";
+	inmusic,devices = <0x15e4d00b>;
+	inmusic,version = "2.3.2";
+
+	images {
+
+		splash {
+			description = "Splash screen";
+			partition = "splash";
+			data = /incbin/("unpacked-img/JC16/splash.img.xz");
+			compression = "xz";
+
+			hash {
+				algo = "sha1";
+			};
+		};
+
+		recoverysplash {
+			description = "Update mode splash screen";
+			partition = "recoverysplash";
+			data = /incbin/("unpacked-img/JC16/recoverysplash.img.xz");
+			compression = "xz";
+
+			hash {
+				algo = "sha1";
+			};
+		};
+
+		rootfs {
+			description = "Root filesystem";
+			partition = "rootfs";
+			data = /incbin/("unpacked-img/JC16/rootfs.img.xz");
+			compression = "xz";
+
+			hash {
+				algo = "sha1";
+			};
+		};
+	};
+};

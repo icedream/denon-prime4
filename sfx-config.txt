@@ -1,4 +1,4 @@
 ;!@Install@!UTF-8!
-Title="Denon PRIME 4 Custom Firmware"
+Title="engine os Custom Firmware"
 RunProgram="FirmwareUpdater.exe"
 ;!@InstallEnd@!

@@ -1,23 +1,12 @@
-#!/bin/bash -e
+#!/bin/bash
 
-log() {
-  echo "$@" >&2
-}
-
-log_fatal() {
-  echo "ERROR:" "$@" >&2
-  exit 1
-}
+. ./functions.sh
 
 if ! command -v dtc >/dev/null; then
   log_fatal "dtc command seems to be missing. You need to install the device-tree-compiler for this script to work."
 fi
 
-files=( $(find . unpacked-img -mindepth 1 -maxdepth 1 -name \*.dts ) )
-
-if [ "${#files[@]}" -lt 1 ]; then
-  log_fatal "Need at least one .dts file to process in either the current working directory or ./unpacked-img/."
-fi
+files=("${device_update_download_filename}.dts")
 
 files_to_delete=()
 on_exit() {
@@ -26,20 +15,28 @@ on_exit() {
   done
 }
 trap 'on_exit' EXIT
-for img in unpacked-img/*.img; do
+for img in "$unpacked_img_dir"/*.img; do
   if [ -f "$img.xz" ]; then
     log "$img.xz already exists, skipping."
     continue
   fi
   log "*** Compressing $img to $img.xz"
-  xz -vk9eT0 --check=crc64 "$img"
-  sha1sum "$img.xz" | awk '{print $1}' | xxd -r -p >"$img.xz.sha1"
+  #xz -vk9eT0 --check=crc64 "$img"
+  #sha1sum "$img.xz" | awk '{print $1}' | xxd -r -p >"$img.xz.sha1"
+  make "$img.xz" "$img.xz.sha1"
   files_to_delete+=("$img.xz" "$img.xz.sha1")
 done
 
 for file in "${files[@]}"; do
+  if [ ! -f "$file" ]; then
+    log_fatal "Need $file to process in either the current working directory or $unpacked_img_dir."
+  fi
+
   dtb="$(basename "$file" .dts).dtb"
 
-  log "*** Converting $file to $dtb"
-  dtc -I dts -O dtb "$file" > "$dtb"
+  #log "*** Converting $file to $dtb"
+  #dtc -I dts -O dtb "$file" > "$dtb"
+
+  log "*** Generating FIT $dtb"
+  mkimage -f "$file" "$dtb"
 done

@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+. ./functions.sh
+
 # read in packages for which we do not want to modify files already shipped with original firmware
 ignored_packages=()
 while read -r package; do
@@ -55,9 +57,22 @@ export PATH="${PATH// /}"
 buildroot_path=$(echo buildroot/*/)
 buildroot_path=${buildroot_path%/}
 
+make_flags=(
+  -C "${buildroot_path}"
+  BR2_EXTERNAL=../../buildroot-customizations
+)
+
+if [ -n "${BR2_JLEVEL:-}" ]; then
+  make_flags+=(BR2_JLEVEL="${BR2_JLEVEL}")
+fi
+
+if [ -n "${BR2_CCACHE_DIR:-}" ]; then
+  make_flags+=(BR2_CCACHE_DIR="${BR2_CCACHE_DIR}")
+fi
+
 failed=0
 for i in $(seq 1 20); do
-  if ! make -C buildroot/*/ -j$(nproc) BR2_EXTERNAL=../../buildroot-customizations; then
+  if ! make "${make_flags[@]}"; then
     failed=$?
     continue
   fi
