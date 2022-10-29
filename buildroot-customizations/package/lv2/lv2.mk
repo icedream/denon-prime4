@@ -1,4 +1,4 @@
-LV2_VERSION = 1.18.8
+LV2_VERSION = 1.18.10
 LV2_SOURCE = lv2-$(LV2_VERSION).tar.bz2
 LV2_SITE = https://lv2plug.in/spec
 LV2_INSTALL_STAGING = YES
