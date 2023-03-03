@@ -54,8 +54,7 @@ export PATH="${PATH// /}"
 
 ./clone-buildroot.sh
 
-buildroot_path=$(echo buildroot/*/)
-buildroot_path=${buildroot_path%/}
+buildroot_path="buildroot/$(get_buildroot_version)"
 
 make_flags=(
   -C "${buildroot_path}"

@@ -21,6 +21,14 @@ log_warning() {
   echo "WARNING:" "$@" >&2
 }
 
+get_buildroot_version() {
+  trap 'rm -f usr/lib/os-release; rmdir usr/lib usr || true' EXIT
+  7z x -o. "$unpacked_img_dir"/rootfs.img usr/lib/os-release >/dev/null
+
+  . ./usr/lib/os-release
+  printf '%s' "${VERSION_ID}"
+}
+
 vendor="${ENGINEOS_VENDOR:-denon}"
 device="${ENGINEOS_DEVICE:-prime4}"
 proc_args=()
