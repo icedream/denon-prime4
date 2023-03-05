@@ -85,6 +85,7 @@ fi
 # delete Engine, SoundSwitch and Qt files from original firmware
 sudo ./mount.sh --write rm -rf \
   /etc/systemd/system/engine.service \
+  /etc/systemd/system/basic.target.wants/az01-libmali-setup.service \
   /root/.screenrc \
   /usr/Engine \
   /usr/mkspecs \
