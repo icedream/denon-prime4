@@ -1,0 +1,45 @@
+/dts-v1/;
+
+/ {
+	timestamp = <0x6380c0bb>;
+	description = "JP11 upgrade image";
+	compatible = "inmusic,jp11";
+	inmusic,devices = <0x15e4d00c>;
+	inmusic,version = "2.4.0";
+
+	images {
+
+		splash {
+			description = "Splash screen";
+			partition = "splash";
+			data = /incbin/("unpacked-img/JP11/splash.img.xz");
+			compression = "xz";
+
+			hash {
+				algo = "sha1";
+			};
+		};
+
+		recoverysplash {
+			description = "Update mode splash screen";
+			partition = "recoverysplash";
+			data = /incbin/("unpacked-img/JP11/recoverysplash.img.xz");
+			compression = "xz";
+
+			hash {
+				algo = "sha1";
+			};
+		};
+
+		rootfs {
+			description = "Root filesystem";
+			partition = "rootfs";
+			data = /incbin/("unpacked-img/JP11/rootfs.img.xz");
+			compression = "xz";
+
+			hash {
+				algo = "sha1";
+			};
+		};
+	};
+};

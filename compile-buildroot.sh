@@ -54,8 +54,7 @@ export PATH="${PATH// /}"
 
 ./clone-buildroot.sh
 
-buildroot_path=$(echo buildroot/*/)
-buildroot_path=${buildroot_path%/}
+buildroot_path="buildroot/$(get_buildroot_version)"
 
 make_flags=(
   -C "${buildroot_path}"
@@ -95,14 +94,14 @@ sudo ./mount.sh --write rm -rf \
   /usr/SoundSwitch
 filter_package_files <"${buildroot_path}/output/build/packages-file-list.txt" | \
 tar -c -C "${buildroot_path}/output/target/" --owner=root --group=root -T - |\
-sudo ./mount.sh --write tar -xp
-sudo ./mount.sh --write systemctl enable sshd
-if ! sudo ./mount.sh grep -q sshd /etc/group; then
-  sudo ./mount.sh --write /sbin/addgroup -S sshd
+do_mount --write tar -xp
+do_mount --write systemctl enable sshd
+if ! do_mount grep -q sshd /etc/group; then
+  do_mount --write /sbin/addgroup -S sshd
 fi
-if ! sudo ./mount.sh grep -q sshd /etc/passwd; then
-  sudo ./mount.sh --write /sbin/adduser -H -S -D -G sshd -h /var/empty sshd
+if ! do_mount grep -q sshd /etc/passwd; then
+  do_mount --write /sbin/adduser -H -S -D -G sshd -h /var/empty sshd
 fi
-sudo ./mount.sh --write sed -i 's,#PermitRootLogin .\+,PermitRootLogin yes,g' /etc/ssh/sshd_config
-(echo denonprime4 && echo denonprime4) | sudo ./mount.sh --write passwd root
-sudo ./mount.sh --write mkdir -p /var/empty
+do_mount --write sed -i 's,#PermitRootLogin .\+,PermitRootLogin yes,g' /etc/ssh/sshd_config
+(echo denonprime4 && echo denonprime4) | do_mount --write passwd root
+do_mount --write mkdir -p /var/empty

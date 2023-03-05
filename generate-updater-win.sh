@@ -33,6 +33,9 @@ if [ "${#files[@]}" -lt 1 ]; then
 fi
 
 output_dir="./updater/$device_id"
+if [ ! -d "$output_dir" ]; then
+  log_fatal "Run ./unpack-updater.sh for this device first." >&2
+fi
 
 for file in "${files[@]}"; do
   cp -v "${file}" "${output_dir}/win"/update.img

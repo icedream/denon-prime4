@@ -2,8 +2,9 @@
 
 set -e
 
+for buildroot in buildroot/*/; do
 (
-    cd buildroot/*/
+    cd "$buildroot"
 
     # wipe output/target and trigger a reinstall of all buildroot packages
     # see https://stackoverflow.com/a/49862790
@@ -27,3 +28,4 @@ set -e
         \) -and -not -path '*/host-*/*' -delete
     # rm -f output/build/host-gcc-final-*/.stamp_host_installed
 )
+done
