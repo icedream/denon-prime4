@@ -29,6 +29,10 @@ get_buildroot_version() {
   printf '%s' "${VERSION_ID}"
 }
 
+do_mount() {
+  sudo ./mount.sh -d "$device" -v "$vendor" "$@"
+}
+
 vendor="${ENGINEOS_VENDOR:-denon}"
 device="${ENGINEOS_DEVICE:-prime4}"
 proc_args=()
