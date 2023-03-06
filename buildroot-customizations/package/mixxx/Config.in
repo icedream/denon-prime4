@@ -3,17 +3,18 @@ menuconfig BR2_PACKAGE_MIXXX
     help
         Installs Mixxx, an open-source DJ software.
 
+    select BR2_PACKAGE_LIBGLVND # OpenGL
+    select BR2_PACKAGE_LIBGLVND_DISPATCH_GL # OpenGL
     depends on BR2_PACKAGE_HAS_UDEV # hidapi
     depends on BR2_PACKAGE_QT5
     depends on BR2_PACKAGE_QT5_JSCORE_AVAILABLE # qt5declarative
     depends on !BR2_PACKAGE_QT5BASE_SQLITE_NONE
 
     # packages listed as REQUIRED in CMakeLists.txt
-    depends on BR2_PACKAGE_HAS_LIBGL # libglu
 	depends on BR2_USE_MMU # libglib2
 	depends on BR2_USE_WCHAR # libglib2
 	depends on BR2_TOOLCHAIN_HAS_THREADS # libglib2
-	depends on BR2_TOOLCHAIN_USES_GLIBC
+    depends on BR2_TOOLCHAIN_USES_GLIBC
     select BR2_PACKAGE_CHROMAPRINT
 	select BR2_PACKAGE_LIBGLIB2
     select BR2_PACKAGE_FLAC
@@ -42,16 +43,6 @@ menuconfig BR2_PACKAGE_MIXXX
     select BR2_PACKAGE_RUBBERBAND
     select BR2_PACKAGE_TAGLIB
     select BR2_PACKAGE_UPOWER
-
-    # qt5 x11 dependencies?
-    select BR2_PACKAGE_LIBGLU if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBICE if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBSM if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBXAW if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBXMU if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBXPM if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBXT if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBXTST if BR2_PACKAGE_QT5X11EXTRAS
 
     # Mixxx has shipped protobuf stuff but idk if it works like that in buildroot…?
     select BR2_PACKAGE_PROTOBUF
@@ -252,9 +243,6 @@ comment "mixxx needs a toolchain w/ wchar, threads"
     
 comment "mixxx needs QT5 w/ declarative and one of the SQLite modules"
     depends on !BR2_PACKAGE_QT5_JSCORE_AVAILABLE || !BR2_PACKAGE_QT5 || BR2_PACKAGE_QT5BASE_SQLITE_NONE
-
-comment "mixxx needs libgl/libglu"
-    depends on !BR2_PACKAGE_HAS_LIBGL
 
 comment "mixxx needs hidapi/udev for talking to devices directly"
     depends on !BR2_PACKAGE_HAS_UDEV
