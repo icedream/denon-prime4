@@ -166,7 +166,7 @@ config BR2_PACKAGE_MIXXX_SUPPORT_BULK
     bool "USB Bulk controller support"
     default y
     help
-        Enable support USB bulk controllers. This will build and link Mixxx against the libusb package.
+        Enable support for USB bulk controllers. This will build and link Mixxx against the libusb package.
 
 config BR2_PACKAGE_MIXXX_SUPPORT_FFMPEG
     bool "FFmpeg support"
