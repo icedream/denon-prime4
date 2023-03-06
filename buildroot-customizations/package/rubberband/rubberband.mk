@@ -37,4 +37,30 @@ ifeq ($(BR2_PACKAGE_VAMP_SDK),y)
 RUBBERBAND_DEPENDENCIES += vamp-sdk
 endif
 
+ifeq ($(BR2_PACKAGE_RUBBERBAND_FFT_FFTW),y)
+RUBBERBAND_DEPENDENCIES += fftw-double
+RUBBERBAND_CONF_OPTS += -Dfft=fftw
+else
+ifeq ($(BR2_PACKAGE_RUBBERBAND_FFT_KISSFFT),y)
+RUBBERBAND_DEPENDENCIES += kissfft
+RUBBERBAND_CONF_OPTS += -Dfft=kissfft
+else
+RUBBERBAND_CONF_OPTS += -Dfft=builtin
+endif
+endif
+
+ifeq ($(BR2_PACKAGE_RUBBERBAND_RESAMPLER_LIBSAMPLERATE),y)
+RUBBERBAND_DEPENDENCIES += libsamplerate
+RUBBERBAND_CONF_OPTS += -Dresampler=libsamplerate
+else
+RUBBERBAND_CONF_OPTS += -Dresampler=builtin
+endif
+
+ifeq ($(BR2_PACKAGE_BOOST_TEST),y)
+RUBBERBAND_CONF_OPTS += -Dtests=enabled
+RUBBERBAND_DEPENDENCIES += boost
+else
+RUBBERBAND_CONF_OPTS += -Dtests=disabled
+endif
+
 $(eval $(meson-package))

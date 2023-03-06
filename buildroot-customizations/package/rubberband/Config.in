@@ -2,3 +2,65 @@ config BR2_PACKAGE_RUBBERBAND
     bool "rubberband"
     help
         Installs rubberband, an audio time-stretching and pitch-shifting library and utility program.
+
+if BR2_PACKAGE_RUBBERBAND
+
+choice
+    prompt "Rubberband FFT"
+    default BR2_PACKAGE_RUBBERBAND_FFT_BUILTIN
+    help
+        The choice of FFT library makes no difference to output quality, only to
+        processing speed.
+
+config BR2_PACKAGE_RUBBERBAND_FFT_BUILTIN
+    bool "Built-in"
+    help
+        Default.
+
+config BR2_PACKAGE_RUBBERBAND_FFT_FFTW
+    bool "FFTW"
+    depends on BR2_PACKAGE_FFTW
+    help
+        A bit faster than built-in. GPL licence.
+
+comment "FFTW needs one of the FFTW options to be selected"
+    depends on !BR2_PACKAGE_FFTW
+
+config BR2_PACKAGE_RUBBERBAND_FFT_KISSFFT
+    bool "KissFFT"
+    select BR2_PACKAGE_KISSFFT
+    help
+        Single precision. Only advisable when using single-precision sample type
+        (see below). BSD-ish licence.
+
+# TODO - vDSP?
+# TODO - SLEEF
+
+endchoice
+
+choice
+    prompt "Rubberband Resampler"
+    default BR2_PACKAGE_RUBBERBAND_RESAMPLER_BUILTIN
+    help
+        The choice of resampler affects both output quality, when
+        pitch-shifting, and CPU usage.
+
+config BR2_PACKAGE_RUBBERBAND_RESAMPLER_BUILTIN
+    bool "Built-in"
+    help
+        Default. Intended to give high quality for time-varying pitch shifts in
+        real-time mode. Not the fastest option.
+
+config BR2_PACKAGE_RUBBERBAND_RESAMPLER_LIBSAMPLERATE
+    bool "libsamplerate"
+    select BR2_PACKAGE_LIBSAMPLERATE
+    help
+        Good choice in most cases. High quality and usually a bit faster than
+        the built-in option. BSD-ish licence.
+
+# TODO - libspeexdsp
+# TODO - Bundled Speex, but should be avoided for new projects anyways.
+
+endchoice
+
+endif
