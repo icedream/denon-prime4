@@ -34,7 +34,6 @@ MIXXX_DEPENDENCIES = \
 	protobuf-c \
 	rubberband \
 	taglib \
-	upower \
 	qt5base \
 	qt5declarative \
 	qt5script \
@@ -89,6 +88,14 @@ endif
 
 ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_LIBSOUNDTOUCH_DYNAMIC),y)
 MIXXX_DEPENDENCIES += libsoundtouch
+endif
+
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_BATTERY),y)
+MIXXX_DEPENDENCIES += libglib2
+MIXXX_DEPENDENCIES += upower
+MIXXX_CONF_OPTS += -DBATTERY=ON
+else
+MIXXX_CONF_OPTS += -DBATTERY=OFF
 endif
 
 ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_BULK),y)
