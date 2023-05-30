@@ -69,6 +69,10 @@ if [ -n "${BR2_CCACHE_DIR:-}" ]; then
   make_flags+=(BR2_CCACHE_DIR="${BR2_CCACHE_DIR}")
 fi
 
+if [ -n "${BR2_CCACHE:-}" ]; then
+  make_flags+=(BR2_CCACHE="${BR2_CCACHE}")
+fi
+
 failed=0
 for i in $(seq 1 20); do
   if ! make "${make_flags[@]}"; then
