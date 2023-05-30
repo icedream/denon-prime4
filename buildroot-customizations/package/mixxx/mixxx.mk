@@ -1,7 +1,8 @@
-MIXXX_VERSION = 2.3.2
-MIXXX_SOURCE = mixxx-$(MIXXX_VERSION).tar.gz
-MIXXX_SITE = https://github.com/mixxxdj/mixxx/archive/refs/tags/$(MIXXX_VERSION).tar.gz
-MIXXX_SITE = $(call github,mixxxdj,mixxx,$(MIXXX_VERSION))
+MIXXX_VERSION = 498395527963f85f7bd959f6a84e4cf7abfb5f67
+#MIXXX_SOURCE = mixxx-$(MIXXX_VERSION).tar.gz
+MIXXX_SITE = https://github.com/whanake-music/mixxx.git
+MIXXX_SITE_METHOD = git
+#MIXXX_SITE = $(call github,mixxxdj,mixxx,$(MIXXX_VERSION))
 MIXXX_INSTALL_STAGING = NO
 MIXXX_INSTALL_TARGET = YES
 MIXXX_LICENSE = GPLv2
@@ -28,6 +29,7 @@ MIXXX_DEPENDENCIES = \
 	libsndfile \
 	libusb \
 	libvorbis \
+	msgsl \
 	portaudio \
 	portmidi \
 	protobuf \
@@ -174,6 +176,12 @@ ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_LOCALECOMPARE),y)
 MIXXX_CONF_OPTS += -DLOCALECOMPARE=ON
 else
 MIXXX_CONF_OPTS += -DLOCALECOMPARE=OFF
+endif
+
+ifeq ($(BR2_PACKAGE_MIXXX_ENGINEPRIME),y)
+MIXXX_CONF_OPTS += -DENGINEPRIME=ON
+else
+MIXXX_CONF_OPTS += -DENGINEPRIME=OFF
 endif
 
 $(eval $(cmake-package))

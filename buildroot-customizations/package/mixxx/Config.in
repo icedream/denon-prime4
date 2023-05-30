@@ -18,6 +18,7 @@ menuconfig BR2_PACKAGE_MIXXX
     select BR2_PACKAGE_LIBOGG
     select BR2_PACKAGE_LIBSNDFILE
     select BR2_PACKAGE_LIBVORBIS
+    select BR2_PACKAGE_MSGSL
     select BR2_PACKAGE_PORTAUDIO
     select BR2_PACKAGE_PORTMIDI
     select BR2_PACKAGE_QT5BASE_CONCURRENT
@@ -232,6 +233,11 @@ config BR2_PACKAGE_MIXXX_SUPPORT_LIBEBUR128_DYNAMIC
         Enables build of libebur128 as a separate package and makes Mixxx link dynamically against it.
 
 endchoice
+
+config BR2_PACKAGE_MIXXX_ENGINEPRIME
+    bool "Denon Engine Prime library export"
+    help
+        Enables linking of libdjinterop for supporting library exports for Denon Engine Prime.
 
 config BR2_PACKAGE_MIXXX_INSTALL_USER_UDEV_RULES
     bool "Install user udev rule file for USB HID and Bulk controllers"

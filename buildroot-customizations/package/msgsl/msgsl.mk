@@ -1,0 +1,8 @@
+MSGSL_VERSION = 4.0.0
+MSGSL_SOURCE = msgsl-$(MSGSL_VERSION).tar.gz
+MSGSL_SITE = $(call github,microsoft,GSL,v$(MSGSL_VERSION))
+MSGSL_INSTALL_STAGING = YES
+MSGSL_INSTALL_TARGET = NO
+MSGSL_LICENSE = MIT
+
+$(eval $(cmake-package))
