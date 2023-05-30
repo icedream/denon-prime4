@@ -30,6 +30,15 @@ To reproduce the modified firmware with OpenSSH:
 
 Command `reboot loader` will reboot the device into update mode. The same command is called from the original `/usr/Engine/Scripts/engine` script.
 
+### Fastboot
+
+You can flash a new root filesystem using the `fastboot` command:
+
+```
+sudo fastboot oem inmusic-unlock-magic-7de5fbc22b8c524e
+sudo fastboot flash rootfs PRIME4-3.0.1-Update.img.dtb
+```
+
 ### Buildroot
 
 The rootfs seems to be built using Buildroot 2021.02.10 with the kernel version being `5.10.109-inmusic-2022-03-30-rt64 #1 SMP PREEMPT_RT Wed May 18 00:35:15 UTC 2022 armv7l GNU/Linux` at the time of writing this.
