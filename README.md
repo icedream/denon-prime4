@@ -2,6 +2,10 @@
 
 This repository contains the efforts done to create and flash custom firmware for the Denon Prime 4. This may also be relevant to other Denon DJ equipment, however the main efforts are focused on the Denon Prime 4.
 
+## Prebuilt firmware
+
+You can download the latest prebuilt version of the customized firmware from [here](https://github.com/icedream/denon-prime4/releases/latest) directly or access the other versions via the GitHub project Releases page.
+
 ## Setup
 
 Steps below have only been tested on an Arch Linux system. Basic development packages (for example `build-essentials` or `base-devel` package), u-boot tools and 7-zip are required to be installed on your system.
