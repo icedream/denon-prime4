@@ -1,0 +1,44 @@
+/dts-v1/;
+
+/ {
+	timestamp = <0x64cb5ff4>;
+	description = "JP13 upgrade image";
+	compatible = "inmusic,jp13";
+	inmusic,devices = <0x15e4d00d>;
+
+	images {
+
+		splash {
+			description = "Splash screen";
+			partition = "splash";
+			data = /incbin/("unpacked-img/JP13/splash.img.xz");
+			compression = "xz";
+
+			hash {
+				algo = "sha1";
+			};
+		};
+
+		recoverysplash {
+			description = "Update mode splash screen";
+			partition = "recoverysplash";
+			data = /incbin/("unpacked-img/JP13/recoverysplash.img.xz");
+			compression = "xz";
+
+			hash {
+				algo = "sha1";
+			};
+		};
+
+		rootfs {
+			description = "Root filesystem";
+			partition = "rootfs";
+			data = /incbin/("unpacked-img/JP13/rootfs.img.xz");
+			compression = "xz";
+
+			hash@1 {
+				algo = "sha1";
+			};
+		};
+	};
+};
