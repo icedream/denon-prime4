@@ -40,7 +40,10 @@ You can flash a new root filesystem using the `fastboot` command:
 
 ```
 sudo fastboot oem inmusic-unlock-magic-7de5fbc22b8c524e
-sudo fastboot flash rootfs PRIME4-3.0.1-Update.img.dtb
+sudo fastboot flash rootfs unpacked-img/JC11/rootfs.img
+sudo fastboot flash splash unpacked-img/JC11/splash.img
+sudo fastboot flash recoverysplash unpacked-img/JC11/recoverysplash.img
+sudo fastboot reboot
 ```
 
 ### Buildroot
