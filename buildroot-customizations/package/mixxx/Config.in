@@ -25,7 +25,6 @@ menuconfig BR2_PACKAGE_MIXXX
     select BR2_PACKAGE_QT5BASE_DBUS
     select BR2_PACKAGE_QT5BASE_GUI
     select BR2_PACKAGE_QT5BASE_NETWORK
-    select BR2_PACKAGE_QT5BASE_OPENGL
     select BR2_PACKAGE_QT5BASE_TEST
     select BR2_PACKAGE_QT5BASE_WIDGETS
     select BR2_PACKAGE_QT5BASE_XCB
@@ -246,6 +245,13 @@ config BR2_PACKAGE_MIXXX_INSTALL_USER_UDEV_RULES
     help
         Whether to install the udev rules for USB HID and Bulk controllers
 
+config BR2_PACKAGE_MIXXX_QOPENGL
+    bool "Use QOpenGLWindow based widget instead of QGLWidget"
+    default BR2_PACKAGE_QT5BASE_OPENGL
+    depends on BR2_PACKAGE_QT5BASE_OPENGL
+
+comment "mixxx will use QGLWidget, if you want it to use QOpenGLWindow enable OpenGL support in Qt first"
+    depends on !BR2_PACKAGE_QT5BASE_OPENGL
 endif
 
 comment "mixxx needs chromaprint"
@@ -254,7 +260,7 @@ comment "mixxx needs chromaprint"
 comment "mixxx needs a toolchain w/ wchar, threads"
     depends on BR2_USE_MMU
     depends on !BR2_USE_WCHAR || !BR2_TOOLCHAIN_HAS_THREADS
-    
+
 comment "mixxx needs QT5 w/ declarative and one of the SQLite modules"
     depends on !BR2_PACKAGE_QT5_JSCORE_AVAILABLE || !BR2_PACKAGE_QT5 || BR2_PACKAGE_QT5BASE_SQLITE_NONE
 

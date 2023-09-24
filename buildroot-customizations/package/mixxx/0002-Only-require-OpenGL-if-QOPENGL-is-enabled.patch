@@ -1,0 +1,31 @@
+From a8f65a875787a8bcdaa269b2975c8b1095141fe1 Mon Sep 17 00:00:00 2001
+From: Carl Kittelberger <icedream@icedream.pw>
+Date: Sun, 24 Sep 2023 16:23:45 +0200
+Subject: [PATCH 2/2] Only require OpenGL if QOPENGL is enabled.
+
+---
+ CMakeLists.txt | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 75871696fa..8655b7d63f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -2182,9 +2182,11 @@ target_include_directories(MP3GuessEnc SYSTEM PUBLIC lib/mp3guessenc-0.27.4)
+ target_link_libraries(mixxx-lib PRIVATE MP3GuessEnc)
+ 
+ # OpenGL
+-set(OpenGL_GL_PREFERENCE "GLVND")
+-find_package(OpenGL REQUIRED)
+-target_link_libraries(mixxx-lib PRIVATE OpenGL::GL)
++if(QOPENGL)
++  set(OpenGL_GL_PREFERENCE "GLVND")
++  find_package(OpenGL REQUIRED)
++  target_link_libraries(mixxx-lib PRIVATE OpenGL::GL)
++endif()
+ 
+ # Ogg
+ find_package(Ogg REQUIRED)
+-- 
+2.42.0
+
