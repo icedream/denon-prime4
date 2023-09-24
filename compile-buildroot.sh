@@ -29,7 +29,7 @@ filter_package_files() {
   local filepath
   while read -r package filepath; do
     case "$filepath" in
-    *.h|*.la|./usr/include/*|./usr/share/doc/*|./usr/share/man/*|./usr/lib/pkgconfig/*|./usr/lib/cmake/*)
+    *.h | *.la | ./usr/include/* | ./usr/share/doc/* | ./usr/share/man/* | ./usr/lib/pkgconfig/* | ./usr/lib/cmake/*)
       # docs/man files/headers, skip without logging
       continue
       ;;
@@ -55,6 +55,7 @@ export PATH="${PATH// /}"
 ./clone-buildroot.sh
 
 buildroot_path="buildroot/$(get_buildroot_version)"
+buildroot_defconfig=inmusic_az01_openssh_defconfig
 
 make_flags=(
   -C "${buildroot_path}"
@@ -73,8 +74,13 @@ if [ -n "${BR2_CCACHE:-}" ]; then
   make_flags+=(BR2_CCACHE="${BR2_CCACHE}")
 fi
 
+if [ ! -f "${buildroot_path}/.config" ]; then
+  echo "WARNING: No buildroot config file was created, generating default." >&2
+  make "${make_flags[@]}" "$buildroot_defconfig"
+fi
+
 failed=0
-for i in $(seq 1 20); do
+for _ in $(seq 1 20); do
   if ! make "${make_flags[@]}"; then
     failed=$?
     continue
@@ -97,9 +103,9 @@ sudo ./mount.sh --write rm -rf \
   /usr/qt \
   /usr/share/Akai \
   /usr/SoundSwitch
-filter_package_files <"${buildroot_path}/output/build/packages-file-list.txt" | \
-tar -c -C "${buildroot_path}/output/target/" --owner=root --group=root -T - |\
-do_mount --write tar -xp
+filter_package_files <"${buildroot_path}/output/build/packages-file-list.txt" |
+  tar -c -C "${buildroot_path}/output/target/" --owner=root --group=root -T - |
+  do_mount --write tar -xp
 do_mount --write systemctl enable sshd
 if ! do_mount grep -q sshd /etc/group; then
   do_mount --write /sbin/addgroup -S sshd
