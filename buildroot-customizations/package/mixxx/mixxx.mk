@@ -1,4 +1,4 @@
-MIXXX_VERSION = 498395527963f85f7bd959f6a84e4cf7abfb5f67
+MIXXX_VERSION = b5c7cca3efc8bbb123a5445fb10ef9606398fe2c
 #MIXXX_SOURCE = mixxx-$(MIXXX_VERSION).tar.gz
 MIXXX_SITE = https://github.com/whanake-music/mixxx.git
 MIXXX_SITE_METHOD = git
@@ -22,6 +22,7 @@ MIXXX_CONF_OPTS = -DUSE_SYMLINKS=OFF
 # 3. CMakeLists.txt shipped with mixxx
 MIXXX_DEPENDENCIES = \
 	chromaprint \
+	gtest \
 	hidapi \
 	lame \
 	libgl \
@@ -50,6 +51,17 @@ MIXXX_DEPENDENCIES = \
 
 ifeq ($(BR2_STATIC_DEPS),y)
 MIXXX_CONF_OPTS += -DSTATIC_LIBS=ON
+endif
+
+ifeq ($(BR2_PACKAGE_QT6),y)
+MIXXX_CONF_OPTS += -DQT6=ON
+ifeq ($(BR2_PACKAGE_MIXXX_QML),y)
+MIXXX_CONF_OPTS += -DQML=ON
+else
+MIXXX_CONF_OPTS += -DQML=OFF
+endif
+else
+MIXXX_CONF_OPTS += -DQML=OFF -DQT6=OFF
 endif
 
 ifeq ($(BR2_PACKAGE_MIXXX_QOPENGL),y)

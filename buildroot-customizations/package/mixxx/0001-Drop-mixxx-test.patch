@@ -1,20 +1,24 @@
-From 5724785c1467223f42448f4558eb522e393abe23 Mon Sep 17 00:00:00 2001
+From 386a98e50ea0688069516215d0aac866eb84b56c Mon Sep 17 00:00:00 2001
 From: Carl Kittelberger <icedream@icedream.pw>
-Date: Tue, 30 May 2023 02:21:21 +0200
-Subject: [PATCH] Drop mixxx-test.
+Date: Sun, 24 Sep 2023 16:02:59 +0200
+Subject: [PATCH 1/2] Drop mixxx-test.
 
 ---
- CMakeLists.txt | 156 -------------------------------------------------
- 1 file changed, 156 deletions(-)
+ CMakeLists.txt | 152 -------------------------------------------------
+ 1 file changed, 152 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 347b0838fa..300d9f79c9 100644
+index f59cb3ab0f..75871696fa 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -1681,159 +1681,6 @@ add_subdirectory(
-   "${CMAKE_CURRENT_BINARY_DIR}/lib/googletest"
- )
+@@ -1816,155 +1816,6 @@ if(WIN32 AND NOT QT6)
+   set(APPLOCAL_COMPONENT_DEFINED true)
+ endif()
  
+-#
+-# Tests
+-#
+-
 -add_executable(mixxx-test
 -  src/test/analyserwaveformtest.cpp
 -  src/test/analyzersilence_test.cpp
@@ -30,6 +34,7 @@ index 347b0838fa..300d9f79c9 100644
 -  src/test/broadcastsettings_test.cpp
 -  src/test/cache_test.cpp
 -  src/test/channelhandle_test.cpp
+-  src/test/chrono_clock_resolution_test.cpp
 -  src/test/colorconfig_test.cpp
 -  src/test/colormapperjsproxy_test.cpp
 -  src/test/colorpalette_test.cpp
@@ -37,6 +42,7 @@ index 347b0838fa..300d9f79c9 100644
 -  src/test/controller_mapping_validation_test.cpp
 -  src/test/controllerscriptenginelegacy_test.cpp
 -  src/test/controlobjecttest.cpp
+-  src/test/controlobjectaliastest.cpp
 -  src/test/controlobjectscripttest.cpp
 -  src/test/coreservicestest.cpp
 -  src/test/coverartcache_test.cpp
@@ -55,7 +61,7 @@ index 347b0838fa..300d9f79c9 100644
 -  src/test/enginebuffertest.cpp
 -  src/test/engineeffectsdelay_test.cpp
 -  src/test/enginefilterbiquadtest.cpp
--  src/test/enginemastertest.cpp
+-  src/test/enginemixertest.cpp
 -  src/test/enginemicrophonetest.cpp
 -  src/test/enginesynctest.cpp
 -  src/test/fileinfo_test.cpp
@@ -64,6 +70,7 @@ index 347b0838fa..300d9f79c9 100644
 -  src/test/hotcuecontrol_test.cpp
 -  src/test/imageutils_test.cpp
 -  src/test/indexrange_test.cpp
+-  src/test/itunesxmlimportertest.cpp
 -  src/test/keyutilstest.cpp
 -  src/test/lcstest.cpp
 -  src/test/learningutilstest.cpp
@@ -122,25 +129,14 @@ index 347b0838fa..300d9f79c9 100644
 -  src/test/wbatterytest.cpp
 -  src/test/wpushbutton_test.cpp
 -  src/test/wwidgetstack_test.cpp
+-  src/util/moc_included_test.cpp
 -)
+-find_package(GTest CONFIG REQUIRED)
 -set_target_properties(mixxx-test PROPERTIES AUTOMOC ON)
--target_link_libraries(mixxx-test PRIVATE mixxx-lib mixxx-gitinfostore gtest gmock)
+-target_link_libraries(mixxx-test PRIVATE mixxx-lib mixxx-gitinfostore GTest::gtest GTest::gmock)
 -
--#
--# Benchmark tests
--#
--
--# Disable testing of google/benchmark
--set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
--
--# Prevent installation of google/benchmark artifacts
--set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "Disable installation of google/benchmark" FORCE)
--
--add_subdirectory(
--  "${CMAKE_CURRENT_SOURCE_DIR}/lib/benchmark"
--  "${CMAKE_CURRENT_BINARY_DIR}/lib/benchmark"
--)
--target_link_libraries(mixxx-test PRIVATE benchmark)
+-find_package(benchmark)
+-target_link_libraries(mixxx-test PRIVATE benchmark::benchmark)
 -
 -# Test Suite
 -include(CTest)
@@ -171,7 +167,7 @@ index 347b0838fa..300d9f79c9 100644
  #
  # Resources
  #
-@@ -1863,8 +1710,6 @@ endif()
+@@ -1994,8 +1845,6 @@ endif()
  
  target_sources(mixxx PRIVATE res/mixxx.qrc)
  set_target_properties(mixxx PROPERTIES AUTORCC ON)
@@ -180,7 +176,7 @@ index 347b0838fa..300d9f79c9 100644
  
  if (MIXXX_VERSION_PRERELEASE STREQUAL "")
     set(MIXXX_VERSION "${CMAKE_PROJECT_VERSION}")
-@@ -2791,7 +2636,6 @@ if(LILV)
+@@ -3012,7 +2861,6 @@ if(LILV)
    )
    target_compile_definitions(mixxx-lib PUBLIC __LILV__)
    target_link_libraries(mixxx-lib PRIVATE lilv::lilv)
@@ -189,5 +185,5 @@ index 347b0838fa..300d9f79c9 100644
  
  # Live Broadcasting (Shoutcast)
 -- 
-2.40.1
+2.42.0
 

@@ -39,6 +39,9 @@ menuconfig BR2_PACKAGE_MIXXX
     select BR2_PACKAGE_RUBBERBAND
     select BR2_PACKAGE_TAGLIB
 
+    # Dependencies listed in source code itself
+    select BR2_PACKAGE_GTEST
+
     # Mixxx has shipped protobuf stuff but idk if it works like that in buildroot…?
     select BR2_PACKAGE_PROTOBUF
     select BR2_PACKAGE_PROTOBUF_C
@@ -250,8 +253,17 @@ config BR2_PACKAGE_MIXXX_QOPENGL
     default BR2_PACKAGE_QT5BASE_OPENGL
     depends on BR2_PACKAGE_QT5BASE_OPENGL
 
+config BR2_PACKAGE_MIXXX_QML
+    bool "Use QML for GUI"
+    default n
+    depends on BR2_PACKAGE_QT6
+
 comment "mixxx will use QGLWidget, if you want it to use QOpenGLWindow enable OpenGL support in Qt first"
     depends on !BR2_PACKAGE_QT5BASE_OPENGL
+
+comment "mixxx will not use QML as that requires Qt 6"
+    depends on !BR2_PACKAGE_QT6
+
 endif
 
 comment "mixxx needs chromaprint"
