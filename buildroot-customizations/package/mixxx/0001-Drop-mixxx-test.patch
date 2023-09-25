@@ -1,0 +1,189 @@
+From 386a98e50ea0688069516215d0aac866eb84b56c Mon Sep 17 00:00:00 2001
+From: Carl Kittelberger <icedream@icedream.pw>
+Date: Sun, 24 Sep 2023 16:02:59 +0200
+Subject: [PATCH 1/2] Drop mixxx-test.
+
+---
+ CMakeLists.txt | 152 -------------------------------------------------
+ 1 file changed, 152 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f59cb3ab0f..75871696fa 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1816,155 +1816,6 @@ if(WIN32 AND NOT QT6)
+   set(APPLOCAL_COMPONENT_DEFINED true)
+ endif()
+ 
+-#
+-# Tests
+-#
+-
+-add_executable(mixxx-test
+-  src/test/analyserwaveformtest.cpp
+-  src/test/analyzersilence_test.cpp
+-  src/test/audiotaperpot_test.cpp
+-  src/test/autodjprocessor_test.cpp
+-  src/test/beatgridtest.cpp
+-  src/test/beatmaptest.cpp
+-  src/test/beatstest.cpp
+-  src/test/beatstranslatetest.cpp
+-  src/test/bpmtest.cpp
+-  src/test/bpmcontrol_test.cpp
+-  src/test/broadcastprofile_test.cpp
+-  src/test/broadcastsettings_test.cpp
+-  src/test/cache_test.cpp
+-  src/test/channelhandle_test.cpp
+-  src/test/chrono_clock_resolution_test.cpp
+-  src/test/colorconfig_test.cpp
+-  src/test/colormapperjsproxy_test.cpp
+-  src/test/colorpalette_test.cpp
+-  src/test/configobject_test.cpp
+-  src/test/controller_mapping_validation_test.cpp
+-  src/test/controllerscriptenginelegacy_test.cpp
+-  src/test/controlobjecttest.cpp
+-  src/test/controlobjectaliastest.cpp
+-  src/test/controlobjectscripttest.cpp
+-  src/test/coreservicestest.cpp
+-  src/test/coverartcache_test.cpp
+-  src/test/coverartutils_test.cpp
+-  src/test/cratestorage_test.cpp
+-  src/test/cue_test.cpp
+-  src/test/cuecontrol_test.cpp
+-  src/test/dbconnectionpool_test.cpp
+-  src/test/dbidtest.cpp
+-  src/test/directorydaotest.cpp
+-  src/test/duration_test.cpp
+-  src/test/durationutiltest.cpp
+-  #TODO: write useful tests for refactored effects system
+-  #src/test/effectchainslottest.cpp
+-  src/test/enginebufferscalelineartest.cpp
+-  src/test/enginebuffertest.cpp
+-  src/test/engineeffectsdelay_test.cpp
+-  src/test/enginefilterbiquadtest.cpp
+-  src/test/enginemixertest.cpp
+-  src/test/enginemicrophonetest.cpp
+-  src/test/enginesynctest.cpp
+-  src/test/fileinfo_test.cpp
+-  src/test/frametest.cpp
+-  src/test/globaltrackcache_test.cpp
+-  src/test/hotcuecontrol_test.cpp
+-  src/test/imageutils_test.cpp
+-  src/test/indexrange_test.cpp
+-  src/test/itunesxmlimportertest.cpp
+-  src/test/keyutilstest.cpp
+-  src/test/lcstest.cpp
+-  src/test/learningutilstest.cpp
+-  src/test/libraryscannertest.cpp
+-  src/test/librarytest.cpp
+-  src/test/looping_control_test.cpp
+-  src/test/main.cpp
+-  src/test/mathutiltest.cpp
+-  src/test/metadatatest.cpp
+-  #TODO: make this build again
+-  #src/test/metaknob_link_test.cpp
+-  src/test/midicontrollertest.cpp
+-  src/test/mixxxtest.cpp
+-  src/test/mock_networkaccessmanager.cpp
+-  src/test/movinginterquartilemean_test.cpp
+-  src/test/musicbrainzrecordingstasktest.cpp
+-  src/test/nativeeffects_test.cpp
+-  src/test/performancetimer_test.cpp
+-  src/test/playcountertest.cpp
+-  src/test/playermanagertest.cpp
+-  src/test/playlisttest.cpp
+-  src/test/portmidicontroller_test.cpp
+-  src/test/portmidienumeratortest.cpp
+-  src/test/queryutiltest.cpp
+-  src/test/rangelist_test.cpp
+-  src/test/readaheadmanager_test.cpp
+-  src/test/replaygaintest.cpp
+-  src/test/rescalertest.cpp
+-  src/test/rgbcolor_test.cpp
+-  src/test/ringdelaybuffer_test.cpp
+-  src/test/samplebuffertest.cpp
+-  src/test/sampleutiltest.cpp
+-  src/test/schemamanager_test.cpp
+-  src/test/searchqueryparsertest.cpp
+-  src/test/seratobeatgridtest.cpp
+-  src/test/seratomarkerstest.cpp
+-  src/test/seratomarkers2test.cpp
+-  src/test/seratotagstest.cpp
+-  src/test/signalpathtest.cpp
+-  src/test/skincontext_test.cpp
+-  src/test/softtakeover_test.cpp
+-  src/test/soundproxy_test.cpp
+-  src/test/soundsourceproviderregistrytest.cpp
+-  src/test/sqliteliketest.cpp
+-  src/test/synccontroltest.cpp
+-  src/test/synctrackmetadatatest.cpp
+-  src/test/tableview_test.cpp
+-  src/test/taglibtest.cpp
+-  src/test/trackdao_test.cpp
+-  src/test/trackexport_test.cpp
+-  src/test/trackmetadata_test.cpp
+-  src/test/tracknumberstest.cpp
+-  src/test/trackreftest.cpp
+-  src/test/trackupdate_test.cpp
+-  src/test/uuid_test.cpp
+-  src/test/wbatterytest.cpp
+-  src/test/wpushbutton_test.cpp
+-  src/test/wwidgetstack_test.cpp
+-  src/util/moc_included_test.cpp
+-)
+-find_package(GTest CONFIG REQUIRED)
+-set_target_properties(mixxx-test PROPERTIES AUTOMOC ON)
+-target_link_libraries(mixxx-test PRIVATE mixxx-lib mixxx-gitinfostore GTest::gtest GTest::gmock)
+-
+-find_package(benchmark)
+-target_link_libraries(mixxx-test PRIVATE benchmark::benchmark)
+-
+-# Test Suite
+-include(CTest)
+-include(GoogleTest)
+-enable_testing()
+-gtest_add_tests(
+-  TARGET mixxx-test
+-  EXTRA_ARGS --logLevel info
+-  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+-  TEST_LIST testsuite
+-)
+-if (NOT WIN32)
+-  # Default to offscreen rendering during tests.
+-  # This is required if the build system like Fedora koji/mock does not
+-  # allow to pass environment variables into the ctest macro expansion.
+-  set_tests_properties(${testsuite} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+-endif()
+-
+-# Benchmarking
+-add_custom_target(mixxx-benchmark
+-  COMMAND $<TARGET_FILE:mixxx-test> --benchmark
+-  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+-  COMMENT "Mixxx Benchmarks"
+-  VERBATIM
+-)
+-add_dependencies(mixxx-benchmark mixxx-test)
+-
+ #
+ # Resources
+ #
+@@ -1994,8 +1845,6 @@ endif()
+ 
+ target_sources(mixxx PRIVATE res/mixxx.qrc)
+ set_target_properties(mixxx PROPERTIES AUTORCC ON)
+-target_sources(mixxx-test PRIVATE res/mixxx.qrc)
+-set_target_properties(mixxx-test PROPERTIES AUTORCC ON)
+ 
+ if (MIXXX_VERSION_PRERELEASE STREQUAL "")
+    set(MIXXX_VERSION "${CMAKE_PROJECT_VERSION}")
+@@ -3012,7 +2861,6 @@ if(LILV)
+   )
+   target_compile_definitions(mixxx-lib PUBLIC __LILV__)
+   target_link_libraries(mixxx-lib PRIVATE lilv::lilv)
+-  target_link_libraries(mixxx-test PRIVATE lilv::lilv)
+ endif()
+ 
+ # Live Broadcasting (Shoutcast)
+-- 
+2.42.0
+

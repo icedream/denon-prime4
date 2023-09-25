@@ -1,0 +1,4 @@
+config BR2_PACKAGE_MSGSL
+    bool "Microsoft GSL"
+    help
+        Installs Microsoft Guidelines Support Library.

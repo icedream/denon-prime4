@@ -3,31 +3,28 @@ menuconfig BR2_PACKAGE_MIXXX
     help
         Installs Mixxx, an open-source DJ software.
 
+    select BR2_PACKAGE_LIBGLVND # OpenGL
+    select BR2_PACKAGE_LIBGLVND_DISPATCH_GL # OpenGL
     depends on BR2_PACKAGE_HAS_UDEV # hidapi
     depends on BR2_PACKAGE_QT5
     depends on BR2_PACKAGE_QT5_JSCORE_AVAILABLE # qt5declarative
     depends on !BR2_PACKAGE_QT5BASE_SQLITE_NONE
 
     # packages listed as REQUIRED in CMakeLists.txt
-    depends on BR2_PACKAGE_HAS_LIBGL # libglu
-	depends on BR2_USE_MMU # libglib2
-	depends on BR2_USE_WCHAR # libglib2
-	depends on BR2_TOOLCHAIN_HAS_THREADS # libglib2
-	depends on BR2_TOOLCHAIN_USES_GLIBC
+    depends on BR2_TOOLCHAIN_USES_GLIBC
     select BR2_PACKAGE_CHROMAPRINT
-	select BR2_PACKAGE_LIBGLIB2
     select BR2_PACKAGE_FLAC
     select BR2_PACKAGE_LAME
     select BR2_PACKAGE_LIBOGG
     select BR2_PACKAGE_LIBSNDFILE
     select BR2_PACKAGE_LIBVORBIS
+    select BR2_PACKAGE_MSGSL
     select BR2_PACKAGE_PORTAUDIO
     select BR2_PACKAGE_PORTMIDI
     select BR2_PACKAGE_QT5BASE_CONCURRENT
     select BR2_PACKAGE_QT5BASE_DBUS
     select BR2_PACKAGE_QT5BASE_GUI
     select BR2_PACKAGE_QT5BASE_NETWORK
-    select BR2_PACKAGE_QT5BASE_OPENGL
     select BR2_PACKAGE_QT5BASE_TEST
     select BR2_PACKAGE_QT5BASE_WIDGETS
     select BR2_PACKAGE_QT5BASE_XCB
@@ -41,17 +38,9 @@ menuconfig BR2_PACKAGE_MIXXX
     select BR2_PACKAGE_QT5X11EXTRAS
     select BR2_PACKAGE_RUBBERBAND
     select BR2_PACKAGE_TAGLIB
-    select BR2_PACKAGE_UPOWER
 
-    # qt5 x11 dependencies?
-    select BR2_PACKAGE_LIBGLU if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBICE if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBSM if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBXAW if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBXMU if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBXPM if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBXT if BR2_PACKAGE_QT5X11EXTRAS
-    select BR2_PACKAGE_XLIB_LIBXTST if BR2_PACKAGE_QT5X11EXTRAS
+    # Dependencies listed in source code itself
+    select BR2_PACKAGE_GTEST
 
     # Mixxx has shipped protobuf stuff but idk if it works like that in buildroot…?
     select BR2_PACKAGE_PROTOBUF
@@ -60,6 +49,10 @@ menuconfig BR2_PACKAGE_MIXXX
     # Deps for building keyfinder source
     select BR2_PACKAGE_FFTW if BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER_STATIC
     select BR2_PACKAGE_FFTW_DOUBLE if BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER_STATIC
+
+    # battery meter
+    select BR2_PACKAGE_LIBGLIB2 if BR2_PACKAGE_MIXXX_SUPPORT_BATTERY
+    select BR2_PACKAGE_UPOWER if BR2_PACKAGE_MIXXX_SUPPORT_BATTERY
 
     # optional features
     select BR2_PACKAGE_FAAD2 if BR2_PACKAGE_MIXXX_SUPPORT_DECODING_AAC
@@ -163,11 +156,20 @@ config BR2_PACKAGE_MIXXX_SUPPORT_HID
         Enable support USB HID controllers. This will build and link Mixxx against the hidapi package.
     default y
 
+config BR2_PACKAGE_MIXXX_SUPPORT_BATTERY
+    bool "Battery meter support"
+    default y
+    depends on BR2_USE_MMU # libglib2
+    depends on BR2_USE_WCHAR # libglib2
+    depends on BR2_TOOLCHAIN_HAS_THREADS # libglib2
+    help
+        Enables the battery meter.
+
 config BR2_PACKAGE_MIXXX_SUPPORT_BULK
     bool "USB Bulk controller support"
     default y
     help
-        Enable support USB bulk controllers. This will build and link Mixxx against the libusb package.
+        Enable support for USB bulk controllers. This will build and link Mixxx against the libusb package.
 
 config BR2_PACKAGE_MIXXX_SUPPORT_FFMPEG
     bool "FFmpeg support"
@@ -234,12 +236,33 @@ config BR2_PACKAGE_MIXXX_SUPPORT_LIBEBUR128_DYNAMIC
 
 endchoice
 
+config BR2_PACKAGE_MIXXX_ENGINEPRIME
+    bool "Denon Engine Prime library export"
+    help
+        Enables linking of libdjinterop for supporting library exports for Denon Engine Prime.
+
 config BR2_PACKAGE_MIXXX_INSTALL_USER_UDEV_RULES
     bool "Install user udev rule file for USB HID and Bulk controllers"
     default y
     depends on BR2_PACKAGE_MIXXX_SUPPORT_HID || BR2_PACKAGE_MIXXX_SUPPORT_BULK
     help
         Whether to install the udev rules for USB HID and Bulk controllers
+
+config BR2_PACKAGE_MIXXX_QOPENGL
+    bool "Use QOpenGLWindow based widget instead of QGLWidget"
+    default BR2_PACKAGE_QT5BASE_OPENGL
+    depends on BR2_PACKAGE_QT5BASE_OPENGL
+
+config BR2_PACKAGE_MIXXX_QML
+    bool "Use QML for GUI"
+    default n
+    depends on BR2_PACKAGE_QT6
+
+comment "mixxx will use QGLWidget, if you want it to use QOpenGLWindow enable OpenGL support in Qt first"
+    depends on !BR2_PACKAGE_QT5BASE_OPENGL
+
+comment "mixxx will not use QML as that requires Qt 6"
+    depends on !BR2_PACKAGE_QT6
 
 endif
 
@@ -249,12 +272,9 @@ comment "mixxx needs chromaprint"
 comment "mixxx needs a toolchain w/ wchar, threads"
     depends on BR2_USE_MMU
     depends on !BR2_USE_WCHAR || !BR2_TOOLCHAIN_HAS_THREADS
-    
+
 comment "mixxx needs QT5 w/ declarative and one of the SQLite modules"
     depends on !BR2_PACKAGE_QT5_JSCORE_AVAILABLE || !BR2_PACKAGE_QT5 || BR2_PACKAGE_QT5BASE_SQLITE_NONE
-
-comment "mixxx needs libgl/libglu"
-    depends on !BR2_PACKAGE_HAS_LIBGL
 
 comment "mixxx needs hidapi/udev for talking to devices directly"
     depends on !BR2_PACKAGE_HAS_UDEV

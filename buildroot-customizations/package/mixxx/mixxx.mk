@@ -1,7 +1,8 @@
-MIXXX_VERSION = 2.3.2
-MIXXX_SOURCE = mixxx-$(MIXXX_VERSION).tar.gz
-MIXXX_SITE = https://github.com/mixxxdj/mixxx/archive/refs/tags/$(MIXXX_VERSION).tar.gz
-MIXXX_SITE = $(call github,mixxxdj,mixxx,$(MIXXX_VERSION))
+MIXXX_VERSION = b5c7cca3efc8bbb123a5445fb10ef9606398fe2c
+#MIXXX_SOURCE = mixxx-$(MIXXX_VERSION).tar.gz
+MIXXX_SITE = https://github.com/whanake-music/mixxx.git
+MIXXX_SITE_METHOD = git
+#MIXXX_SITE = $(call github,mixxxdj,mixxx,$(MIXXX_VERSION))
 MIXXX_INSTALL_STAGING = NO
 MIXXX_INSTALL_TARGET = YES
 MIXXX_LICENSE = GPLv2
@@ -21,6 +22,7 @@ MIXXX_CONF_OPTS = -DUSE_SYMLINKS=OFF
 # 3. CMakeLists.txt shipped with mixxx
 MIXXX_DEPENDENCIES = \
 	chromaprint \
+	gtest \
 	hidapi \
 	lame \
 	libgl \
@@ -28,13 +30,13 @@ MIXXX_DEPENDENCIES = \
 	libsndfile \
 	libusb \
 	libvorbis \
+	msgsl \
 	portaudio \
 	portmidi \
 	protobuf \
 	protobuf-c \
 	rubberband \
 	taglib \
-	upower \
 	qt5base \
 	qt5declarative \
 	qt5script \
@@ -49,6 +51,23 @@ MIXXX_DEPENDENCIES = \
 
 ifeq ($(BR2_STATIC_DEPS),y)
 MIXXX_CONF_OPTS += -DSTATIC_LIBS=ON
+endif
+
+ifeq ($(BR2_PACKAGE_QT6),y)
+MIXXX_CONF_OPTS += -DQT6=ON
+ifeq ($(BR2_PACKAGE_MIXXX_QML),y)
+MIXXX_CONF_OPTS += -DQML=ON
+else
+MIXXX_CONF_OPTS += -DQML=OFF
+endif
+else
+MIXXX_CONF_OPTS += -DQML=OFF -DQT6=OFF
+endif
+
+ifeq ($(BR2_PACKAGE_MIXXX_QOPENGL),y)
+MIXXX_CONF_OPTS += -DQOPENGL=ON
+else
+MIXXX_CONF_OPTS += -DQOPENGL=OFF
 endif
 
 ifeq ($(BR2_PACKAGE_MIXXX_INSTALL_USER_UDEV_RULES),y)
@@ -73,7 +92,7 @@ MIXXX_CONF_OPTS += -DKEYFINDER=ON
 ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_KEYFINDER_DYNAMIC),y)
 MIXXX_DEPENDENCIES += libkeyfinder
 else
-MIXXX_DEPENDENCIES += fftw3
+MIXXX_DEPENDENCIES += fftw-double
 endif
 else
 MIXXX_CONF_OPTS += -DKEYFINDER=OFF
@@ -89,6 +108,14 @@ endif
 
 ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_LIBSOUNDTOUCH_DYNAMIC),y)
 MIXXX_DEPENDENCIES += libsoundtouch
+endif
+
+ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_BATTERY),y)
+MIXXX_DEPENDENCIES += libglib2
+MIXXX_DEPENDENCIES += upower
+MIXXX_CONF_OPTS += -DBATTERY=ON
+else
+MIXXX_CONF_OPTS += -DBATTERY=OFF
 endif
 
 ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_BULK),y)
@@ -167,6 +194,12 @@ ifeq ($(BR2_PACKAGE_MIXXX_SUPPORT_LOCALECOMPARE),y)
 MIXXX_CONF_OPTS += -DLOCALECOMPARE=ON
 else
 MIXXX_CONF_OPTS += -DLOCALECOMPARE=OFF
+endif
+
+ifeq ($(BR2_PACKAGE_MIXXX_ENGINEPRIME),y)
+MIXXX_CONF_OPTS += -DENGINEPRIME=ON
+else
+MIXXX_CONF_OPTS += -DENGINEPRIME=OFF
 endif
 
 $(eval $(cmake-package))
