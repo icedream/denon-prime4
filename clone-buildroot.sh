@@ -2,6 +2,10 @@
 
 . ./functions.sh
 
+if ! command -v 7z >/dev/null; then
+  log_fatal "You need 7-zip installed (7z command seems to be missing)."
+fi
+
 trap 'rm -f usr/lib/os-release; rmdir usr/lib usr || true' EXIT
 7z x -o. "$unpacked_img_dir"/rootfs.img usr/lib/os-release
 

@@ -1,0 +1,71 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Build
+
+# Controls when the workflow will run
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [ self-hosted, ubuntu ]
+
+    strategy:
+      matrix:
+        model:
+          - JC11
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y \
+            bc \
+            binfmt-support \
+            build-essential \
+            cpio \
+            e2tools \
+            file \
+            git \
+            p7zip-full \
+            qemu-user-static \
+            rsync \
+            u-boot-tools \
+            unzip \
+            wget \
+            xz-utils
+      - name: Set up caching for buildroot downloads
+        uses: actions/cache@v1
+        with:
+          path: ~/buildroot-dl
+          key: buildroot-dl
+      - name: Set up ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.model }}
+      - name: Set up environment for buildroot
+        run: |
+          export BR2_CCACHE=y
+          export BR2_DL_DIR="$HOME/buildroot-dl"
+      - name: Set up Git for patching
+        run: |
+          git config --global user.name "Buildroot"
+          git config --global user.email "buildroot@icedream.pw"
+      - uses: actions/checkout@v3
+      - name: Run dist script
+        run: ./dist.sh
+      - name: Upload image as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          retention_days: 3
+          name: firmware-image
+          path: '*.dtb'
+      - name: Upload updater tool as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          retention_days: 3
+          name: firmware-updater-win
+          path: '*.exe'
