@@ -56,9 +56,20 @@ export PATH="${PATH// /}"
 
 buildroot_path="buildroot/$(get_buildroot_version)"
 
+BR2_GLOBAL_PATCH_DIR=""
+for d in common "${device_id_lowercase}"; do
+  if [ -d "${SCRIPT_DIR}/buildroot-customizations/board/inmusic/$d/patches" ]; then
+    if [ -n "${BR2_GLOBAL_PATCH_DIR}" ]; then
+      BR2_GLOBAL_PATCH_DIR="${BR2_GLOBAL_PATCH_DIR} "
+    fi
+    BR2_GLOBAL_PATCH_DIR="${BR2_GLOBAL_PATCH_DIR}${SCRIPT_DIR}/buildroot-customizations/board/inmusic/$d/patches"
+  fi
+done
+
 make_flags=(
   -C "${buildroot_path}"
   BR2_EXTERNAL=../../buildroot-customizations
+  BR2_GLOBAL_PATCH_DIR="${BR2_GLOBAL_PATCH_DIR}"
 )
 
 if [ -n "${BR2_JLEVEL:-}" ]; then
