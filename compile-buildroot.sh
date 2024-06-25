@@ -114,7 +114,9 @@ if command -v gcc 2>/dev/null >/dev/null; then
   fi
 fi
 
+make "${make_flags[@]}" "${device_id_lowercase}_defconfig"
 make "${make_flags[@]}"
+
 filter_package_files <"${buildroot_path}/output/build/packages-file-list.txt" | \
 tar -c -C "${buildroot_path}/output/target/" --owner=root --group=root -T - |\
 do_mount --write tar -xp

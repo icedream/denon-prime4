@@ -30,5 +30,3 @@ git init "buildroot/${VERSION_ID}"
       "${patches_dir}"/*.patch
   fi
 )
-
-cp -rv buildroot-config/. buildroot/"${VERSION_ID}"

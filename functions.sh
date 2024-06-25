@@ -4,6 +4,8 @@ set -e
 set -u
 set -o pipefail
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 log() {
   echo "$@" >&2
 }
@@ -86,6 +88,8 @@ if [ -z "$device_id" ]; then
   echo "ERROR: invalid vendor or device." >&2
   exit 1
 fi
+
+device_id_lowercase=$(tr '[[:upper:]]' '[[:lower:]]' <<<"$device_id")
 
 device_update_download_filename="${device_update_download_url##*/}"
 device_updater_win_download_filename="${device_updater_win_download_url##*/}"
