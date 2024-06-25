@@ -1,0 +1,3 @@
+[submodule "buildroot-customizations"]
+	path = buildroot-customizations
+	url = ../buildroot-enginedevices.git
