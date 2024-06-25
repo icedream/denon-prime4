@@ -80,7 +80,9 @@ if [ -n "${BR2_CCACHE_DIR:-}" ]; then
   make_flags+=(BR2_CCACHE_DIR="${BR2_CCACHE_DIR}")
 fi
 
+make "${make_flags[@]}" "${device_id_lowercase}_defconfig"
 make "${make_flags[@]}"
+
 filter_package_files <"${buildroot_path}/output/build/packages-file-list.txt" | \
 tar -c -C "${buildroot_path}/output/target/" --owner=root --group=root -T - |\
 do_mount --write tar -xp

@@ -3,7 +3,7 @@
 # Buildroot 2023.02.9 Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
-BR2_EXTERNAL_MIXXX_PATH="/home/icedream/Documents/Source/Git/github.com/ghuntley/denon-prime4/buildroot-customizations"
+BR2_EXTERNAL_MIXXX_PATH="/home/icedream/Documents/Source/Git/github.com/icedream/denon-prime4/buildroot-customizations"
 BR2_HOST_GCC_AT_LEAST_4_9=y
 BR2_HOST_GCC_AT_LEAST_5=y
 BR2_HOST_GCC_AT_LEAST_6=y
@@ -4861,7 +4861,7 @@ BR2_TARGET_UBOOT_CUSTOM_PATCH_DIR=""
 #
 
 #
-# Mixxx (in /home/icedream/Documents/Source/Git/github.com/ghuntley/denon-prime4/buildroot-customizations)
+# Mixxx (in /home/icedream/Documents/Source/Git/github.com/icedream/denon-prime4/buildroot-customizations)
 #
 
 #

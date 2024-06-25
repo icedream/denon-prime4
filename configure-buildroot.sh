@@ -5,7 +5,6 @@
 buildroot_path="buildroot/$(get_buildroot_version)"
 
 #./clone-buildroot.sh
-cp -v buildroot-config/.config "$buildroot_path"
 
 config_target="${1:-}"
 if [ -z "$config_target" ]; then
@@ -30,10 +29,16 @@ done
 make_flags=(
   -C "${buildroot_path}"
   BR2_EXTERNAL=../../buildroot-customizations
+  BR2_DEFCONFIG="${SCRIPT_DIR}/buildroot-customizations/configs/${device_id_lowercase}_defconfig"
   BR2_GLOBAL_PATCH_DIR="${BR2_GLOBAL_PATCH_DIR}"
 )
 
 make \
   "${make_flags[@]}" \
+  "${device_id_lowercase}_defconfig"
+make \
+  "${make_flags[@]}" \
   "$config_target"
-cp -v "$buildroot_path/.config" buildroot-config
+make \
+  "${make_flags[@]}" \
+  savedefconfig
