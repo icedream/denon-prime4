@@ -1,4 +1,4 @@
 ;!@Install@!UTF-8!
 Title="engine os Custom Firmware"
-RunProgram="FirmwareUpdater.exe"
+RunProgram="updater.exe"
 ;!@InstallEnd@!

@@ -70,8 +70,9 @@ device_update_download_filename=
 device_application_name=
 device_updater_win_download_url=
 device_updater_win_download_filename=
+device_name=
 
-while read -r current_vendor current_device current_device_id current_device_application_name current_img_download_url current_updater_download_url _; do
+while read -r current_vendor current_device current_device_id current_device_application_name current_img_download_url current_updater_download_url current_device_name; do
   if [ "$current_vendor" = "$vendor" ] && [ "$current_device" = "$device" ]; then
     device_id="$current_device_id"
     device_update_download_url="$current_img_download_url"
@@ -80,6 +81,7 @@ while read -r current_vendor current_device current_device_id current_device_app
       device_updater_win_download_url="${current_updater_download_url}"
     fi
     device_application_name="$current_device_application_name"
+    device_name="$current_device_name"
     break
   fi
 done <devices.txt

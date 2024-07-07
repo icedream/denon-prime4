@@ -16,6 +16,7 @@ SCRIPTS=\
 	dist\
 	generate-package-ignorelist\
 	generate-updater-win\
+	generate-new-updater-win\
 	pack\
 	unpack-updater\
 	unpack

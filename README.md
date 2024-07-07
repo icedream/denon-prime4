@@ -20,7 +20,22 @@ To reproduce the modified firmware with OpenSSH:
 2. Run `./clone-buildroot.sh` to download the matching buildroot environment via Git to the `buildroot/2021.02.10` directory.
 3. Run `./compile-buildroot.sh` to build the required toolchain and packages in buildroot. Note that this will ask for sudo access to modify the unpacked firmware images via loopback mount.
 4. Run `./pack.sh` to finally pack the modified image files back into a new firmware package. It will have a `.dtb` extension but you can rename this to `.img` and flash it directly to your hardware.
-5. Optionally run `./unpack-updater.sh` to download Denon's original Windows tool for flashing firmware via USB cable, then run `./generate-updater-win.sh` to download 7-zip's SFX module to generate a self-extracting executable based on that tool but with your own image instead.
+
+### Updater
+
+You can generate a self-extracting updater tool based on the above generated image.
+
+You can either extract the original Denon DJ firmware install tool and use it to flash the custom firmware, or you can use the entirely open-sourced firmware update tool.
+
+#### Based on Denon's original updater tool
+
+1. Run `./unpack-updater.sh` to download Denon's original Windows tool for flashing firmware via USB cable.
+2. Run `./generate-updater-win.sh` to download 7-zip's SFX module to generate a self-extracting executable based on that tool but with your own image instead.
+
+#### Based on the new updater tool
+
+1. Install [Go](https://go.dev/) 1.22 or newer.
+2. Run `./generate-new-updater-win.sh` to download 7-zip's SFX module to generate a self-extracting executable based on that tool but with your own image instead.
 
 ## Customizations
 
