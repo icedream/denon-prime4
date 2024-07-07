@@ -32,20 +32,38 @@ if [ "${#files[@]}" -lt 1 ]; then
   log_fatal "Need at least one .dtb file to process. Generate it with ./pack.sh or put it into the current working directory ($(pwd))."
 fi
 
-output_dir="./updater/$device_id"
-if [ ! -d "$output_dir" ]; then
-  log_fatal "Run ./unpack-updater.sh for this device first." >&2
-fi
+make -C go all-windows-amd64
+
+tempdir=$(mktemp -d)
+trap 'rm -rf ${tempdir}' EXIT
 
 for file in "${files[@]}"; do
-  cp -v "${file}" "${output_dir}/win"/update.img
   dtb_name="$(basename "${file}" .dtb)"
+  dtb_dir="$(dirname "$dtb_name")"
+
+  # generate config file
+  cat >"$tempdir"/config.toml <<EOF
+[[devices]]
+name = "${device_name}"
+imagePath = "${dtb_name}.dtb"
+usbConfig = 1
+usbInterface = 0
+usbAlternate = 0
+usbInputEndpoint = 1
+usbOutputEndpoint = 2
+usbReadSize = 256
+usbReadBufferSize = 0
+usbWriteSize = 4096
+usbWriteBufferSize = 0
+usbOpTimeout = "1m"
+EOF
   for sfx_file in "${sfx[@]}"; do
     sfx_name="$(basename "$sfx_file" .sfx)"
     exe_name="${dtb_name}_${sfx_name}.exe"
     archive_name="${dtb_name}_${sfx_name}.7z"
     echo "*** Packing updater files"
-    7z a "$archive_name" "${output_dir}"/win*
+    # NOTE - keep ./ to make 7z strip dir paths
+    7z a "$archive_name" ./go/updater.exe ./go/*.dll "$tempdir"/./config.toml "${dtb_dir}"/./"${dtb_name}".dtb
     trap 'rm -f "$archive_name"' EXIT
     echo "*** Generating ${exe_name} with ${sfx_file}"
     cat "${sfx_file}" sfx-config.txt "$archive_name" >"$exe_name"
