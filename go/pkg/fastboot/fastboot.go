@@ -245,7 +245,7 @@ func (fb *FastBootChannel) dataCommand(
 	}
 
 	// now we stream our data to the client
-	buf := make([]byte, 16*1024)
+	buf := make([]byte, 128*1024 /*128k*/)
 	for {
 		n, err := r.Read(buf)
 		if err != nil {
