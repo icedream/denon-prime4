@@ -20,7 +20,7 @@ To reproduce the modified firmware with OpenSSH:
 2. Run `./clone-buildroot.sh` to download the matching buildroot environment via Git to the `buildroot/2021.02.10` directory.
 3. Run `./compile-buildroot.sh` to build the required toolchain and packages in buildroot. Note that this will ask for sudo access to modify the unpacked firmware images via loopback mount.
 4. Run `./pack.sh` to finally pack the modified image files back into a new firmware package. It will have a `.dtb` extension but you can rename this to `.img` and flash it directly to your hardware.
-5. Optionally, run `./generate-updater-win.sh` to download 7-zip's SFX module to generate a self-extracting executable based on that tool but with your own image instead.
+5. Optionally, install [Go](https://go.dev/) 1.22 or newer and run `./generate-updater-win.sh` to download 7-zip's SFX module to generate a self-extracting executable based on that tool but with your own image instead.
 
 ## Customizations
 
