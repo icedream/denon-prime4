@@ -8,6 +8,7 @@ WINDOWS_386_TRIPLET=i686-w64-mingw32
 WINDOWS_386_PREFIX=/usr/$(WINDOWS_386_TRIPLET)
 GOTAGS=libxz
 LINUX_AMD64_TRIPLET=x86_64-linux-gnu
+GO=go
 GOOS=
 GOARCH=
 GOBUILDFLAGS=
@@ -65,10 +66,10 @@ clean-windows-amd64:
 #
 
 find_update$(BINEXT): go.mod go.sum $(wildcard ./pkg/**/*.go ./cmd/find_update/**/*.go)
-	go build -tags $(GOTAGS) -ldflags $(GOBUILDLDFLAGS) $(GOBUILDFLAGS) -o $@ -v ./cmd/find_update
+	$(GO) build -tags $(GOTAGS) -ldflags $(GOBUILDLDFLAGS) $(GOBUILDFLAGS) -o $@ -v ./cmd/find_update
 
 updater$(BINEXT): go.mod go.sum $(wildcard ./pkg/**/*.go ./cmd/updater/**/*.go)
-	go build -tags $(GOTAGS) -ldflags $(GOGUIBUILDFLAGS)\ $(GOBUILDLDFLAGS) $(GOBUILDFLAGS) -o $@ -v ./cmd/updater
+	$(GO) build -tags $(GOTAGS) -ldflags $(GOGUIBUILDFLAGS)\ $(GOBUILDLDFLAGS) $(GOBUILDFLAGS) -o $@ -v ./cmd/updater
 
 #
 # PACKAGING TASKS
