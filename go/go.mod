@@ -1,10 +1,12 @@
 module github.com/icedream/denon-prime4/go
 
-go 1.19
+go 1.23
 
-require github.com/PuerkitoBio/goquery v1.9.1
+toolchain go1.23.4
+
+require github.com/PuerkitoBio/goquery v1.10.1
 
 require (
-	github.com/andybalholm/cascadia v1.3.2 // indirect
-	golang.org/x/net v0.21.0 // indirect
+	github.com/andybalholm/cascadia v1.3.3 // indirect
+	golang.org/x/net v0.33.0 // indirect
 )
