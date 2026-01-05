@@ -2,7 +2,7 @@ module github.com/icedream/denon-prime4/go
 
 go 1.23
 
-toolchain go1.23.3
+toolchain go1.25.5
 
 require github.com/PuerkitoBio/goquery v1.10.0
 
