@@ -99,6 +99,17 @@ if command -v gcc 2>/dev/null >/dev/null; then
         echo "WARNING: Setting CFLAGS=-std=gnu17 as the found gcc $gcc_version is too new for gawk $gawk_version and would default to wrong language version"
       fi
     fi
+
+    # gmp 6.2.1 and older
+    #
+    # ref #70
+    if [ -f "${buildroot_path}/package/gmp/gmp.mk" ]; then
+      gmp_version=$(cat "${buildroot_path}/package/gmp/gmp.mk" | grep -Po '^GMP_VERSION\s*=\s*\K.+$')
+      if [ "$( (echo "$gmp_version" && echo "6.3.0") | sort -V | head -n1 )" != "6.3.0" ]; then
+        echo "WARNING: Setting CFLAGS=-std=gnu17 as the found gcc $gcc_version is too new for gmp $gmp_version and would default to wrong language version"
+        make_flags+=(HOST_GMP_CONF_ENV=CFLAGS=-std=gnu17)
+      fi
+    fi
   fi
 fi
 
