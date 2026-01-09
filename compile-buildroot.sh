@@ -74,6 +74,19 @@ if command -v gcc 2>/dev/null >/dev/null; then
   # read gcc version
   gcc_version=$(gcc --version | grep -Eo 'gcc.+[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' | cut -d' ' -f 3)
   if [ "$( (echo "$gcc_version" && echo "14.0.0") | sort -V | head -n1 )" = "14.0.0" ]; then
+    # m4 1.4.19 and older
+    #
+    # ref #69
+    # ref https://gitlab.com/buildroot.org/buildroot/-/commit/7a07a9d155b8f601d68f07ee0ed1dc8d48907644
+    if [ -f "${buildroot_path}/package/m4/m4.mk" ]; then
+      m4_version=$(cat "${buildroot_path}/package/m4/m4.mk" | grep -Po '^M4_VERSION\s*=\s*\K.+$')
+      if [ "$( (echo "$m4_version" && echo "1.4.20") | sort -V | head -n1 )" != "1.4.20" ]; then
+        # do not default to c23+
+        make_flags+=(HOST_M4_CONF_ENV=CFLAGS=-std=gnu17)
+        echo "WARNING: Setting CFLAGS=-std=gnu17 as the found gcc $gcc_version is too new for m4 $m4_version and would default to wrong language version"
+      fi
+    fi
+
     # gawk 5.3.0 and older
     #
     # ref #66
