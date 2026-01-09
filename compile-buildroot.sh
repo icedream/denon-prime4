@@ -69,6 +69,26 @@ if [ -n "${BR2_CCACHE_DIR:-}" ]; then
   make_flags+=(BR2_CCACHE_DIR="${BR2_CCACHE_DIR}")
 fi
 
+# Version check for new gcc default language version to avoid build failures
+if command -v gcc 2>/dev/null >/dev/null; then
+  # read gcc version
+  gcc_version=$(gcc --version | grep -Eo 'gcc.+[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+' | cut -d' ' -f 3)
+  if [ "$( (echo "$gcc_version" && echo "14.0.0") | sort -V | head -n1 )" = "14.0.0" ]; then
+    # gawk 5.3.0 and older
+    #
+    # ref #66
+    # ref gawk 7a521fe4b37f8554ca53ef3236f0352e391aaa1d (contained in 5.3.1)
+    if [ -f "${buildroot_path}/package/gawk/gawk.mk" ]; then
+      gawk_version=$(cat "${buildroot_path}/package/gawk/gawk.mk" | grep -Po '^GAWK_VERSION\s*=\s*\K.+$')
+      if [ "$( (echo "$gawk_version" && echo "5.3.1") | sort -V | head -n1 )" != "5.3.1" ]; then
+        # do not default to c23+
+        make_flags+=(HOST_GAWK_CONF_ENV=CFLAGS=-std=gnu17)
+        echo "WARNING: Setting CFLAGS=-std=gnu17 as the found gcc $gcc_version is too new for gawk $gawk_version and would default to wrong language version"
+      fi
+    fi
+  fi
+fi
+
 make "${make_flags[@]}"
 filter_package_files <"${buildroot_path}/output/build/packages-file-list.txt" | \
 tar -c -C "${buildroot_path}/output/target/" --owner=root --group=root -T - |\
