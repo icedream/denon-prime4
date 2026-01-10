@@ -59,6 +59,7 @@ buildroot_path="buildroot/$(get_buildroot_version)"
 make_flags=(
   -C "${buildroot_path}"
   BR2_EXTERNAL=../../buildroot-customizations
+  BR2_GLOBAL_PATCH_DIR=../../buildroot-customizations/patches
 )
 
 if [ -n "${BR2_JLEVEL:-}" ]; then
