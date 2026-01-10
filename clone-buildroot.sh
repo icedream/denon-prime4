@@ -18,7 +18,7 @@ trap 'rm -f usr/lib/os-release; rmdir usr/lib usr || true' EXIT
 git init "buildroot/${VERSION_ID}"
 (
   cd "buildroot/${VERSION_ID}"
-  git remote add origin https://git.buildroot.net/buildroot || true
+  git remote add origin https://gitlab.com/buildroot.org/buildroot.git || true
   git fetch origin "refs/tags/${VERSION_ID}:refs/tags/${VERSION_ID}"
   git checkout "${VERSION_ID}"
   patches_dir=../../buildroot-patches/"${VERSION_ID}"
