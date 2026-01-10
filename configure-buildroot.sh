@@ -9,7 +9,7 @@ cp -v buildroot-config/.config "$buildroot_path"
 
 config_target="${1:-}"
 if [ -z "$config_target" ]; then
-  if [ -n "$DISPLAY" ]
+  if [ -n "${DISPLAY:-}" ]
   then
     config_target=xconfig
   else
