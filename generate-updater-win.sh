@@ -26,7 +26,7 @@ if [ "${#sfx[@]}" -gt 1 ]; then
   log_warning "More than one .sfx file found, using the first one: ${sfx[1]}"
 fi
 
-files=($(find -mindepth 1 -maxdepth 1 -name \*.dtb))
+files=("${device_update_download_filename}.dtb")
 
 if [ "${#files[@]}" -lt 1 ]; then
   log_fatal "Need at least one .dtb file to process. Generate it with ./pack.sh or put it into the current working directory ($(pwd))."
