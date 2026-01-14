@@ -30,6 +30,7 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 	"github.com/roblillack/spot/ui"
+	slogmulti "github.com/samber/slog-multi"
 )
 
 func doLayout(graphicsCtx layout.Context, state *State) {
@@ -402,9 +403,21 @@ func initUI() error {
 	}
 
 	programLevel := new(slog.LevelVar) // Info by default
-	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+	logStderrHandler := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: programLevel,
-	}))
+	})
+	var logHandler slog.Handler = logStderrHandler
+	// set up log file if requested
+	if flagLogFile != nil && len(*flagLogFile) != 0 {
+		f, err := os.Create(*flagLogFile)
+		if err == nil {
+			logFileHandler := slog.NewTextHandler(f, &slog.HandlerOptions{
+				Level: programLevel,
+			})
+			logHandler = slogmulti.Fanout(logStderrHandler, logFileHandler)
+		}
+	}
+	logger := slog.New(logHandler)
 	slog.SetDefault(logger)
 
 	// set log level if requested
