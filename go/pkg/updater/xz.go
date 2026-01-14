@@ -63,9 +63,6 @@ func getXZUncompressedLength(r io.ReadSeeker) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to read number of records from index: %w", err)
 	}
-	if numberOfRecords < 0 {
-		return 0, fmt.Errorf("failed to read number of records from index: %w", errors.New("number of records negative"))
-	}
 
 	// calculate total uncompressed size from all records
 	var totalUncompressedRecordSize int64
@@ -80,9 +77,6 @@ func getXZUncompressedLength(r io.ReadSeeker) (int64, error) {
 		uncompressedRecordSize, _, err := readUvarint(br)
 		if err != nil {
 			return 0, fmt.Errorf("failed to read uncompressed size for index record %d: %w", i, err)
-		}
-		if uncompressedRecordSize < 0 {
-			return 0, fmt.Errorf("failed to read uncompressed size for index record %d: %w", i, errors.New("uncompressed size negative"))
 		}
 		totalUncompressedRecordSize += int64(uncompressedRecordSize)
 	}
