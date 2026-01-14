@@ -49,7 +49,7 @@ build-fltk: go-mod-download
 
 	mkdir -p fltk_build
 	cd fltk_build && if [ -d fltk ]; then cd fltk && git fetch; else git clone https://github.com/fltk/fltk.git fltk; fi
-	cd fltk_build/fltk && git reset --hard && git clean -ffdx && git checkout tags/release-1.4.4
+	cd fltk_build/fltk && git reset --hard && git clean -ffdx && git checkout $(shell grep -Po 'commit = "\K.+(?=")' $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/fltk-build.go)
 	cd fltk_build/fltk && [ $(shell go env GOOS) != windows ] || git apply $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/lib/fltk-1.4.patch
 	gen="Unix Makefiles"; if [ $(shell go env GOOS) = windows ] && [ $(shell uname -s) = windows ]; then gen="MinGW Makefiles"; fi; \
 	if [ $(shell go env GOOS) = windows ]; then sysname="Windows"; \
