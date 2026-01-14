@@ -26,6 +26,8 @@ GOBUILDFLAGS=
 
 export CC CXX GOOS GOARCH CGO_ENABLED
 
+.PHONY: all
+
 all: $(addsuffix $(BINEXT),$(BINS))
 
 .PHONY: go-mod-download
