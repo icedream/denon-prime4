@@ -1,6 +1,7 @@
 TRIPLET=x86_64-linux-gnu
 CC=$(TRIPLET)-gcc
 CXX=$(TRIPLET)-g++
+OBJDUMP=objdump
 PREFIX=/usr
 WINDOWS_AMD64_TRIPLET=x86_64-w64-mingw32
 WINDOWS_AMD64_PREFIX=/usr/$(WINDOWS_AMD64_TRIPLET)
@@ -15,9 +16,9 @@ GOBUILDFLAGS=
 CGO_ENABLED=1
 DLLEXT=.so
 BINEXT=
-LINUX_DLL_BLACKLIST="^(libc.so)([\.\d+]+)\$$"
+LINUX_DLL_BLACKLIST="^((libc|libresolv).so)([\.[:digit:]+]+)\$$"
 WINDOWS_DLL_BLACKLIST="^(advapi32.dll|comctl32.dll|comdlg32.dll|gdi32.dll|kernel32.dll|gdi32.dll|gdiplus.dll|glu32.dll|kernel32.dll|msvcrt.dll|ole32.dll|opengl32.dll|shell32.dll|user32.dll|ws2_32.dll|api-ms-.+|.+.drv)\$$"
-DLL_BLACKLIST=$(WINDOWS_DLL_BLACKLIST)
+DLL_BLACKLIST=$(LINUX_DLL_BLACKLIST)
 LIB_PREFIX=$(PREFIX)/lib
 BINS=find_update updater
 GOGUIBUILDFLAGS=
@@ -96,9 +97,9 @@ all-windows-amd64:
 		GOOS=windows \
 		GOARCH=amd64 \
 		TRIPLET=$(WINDOWS_AMD64_TRIPLET) \
+		OBJDUMP=$(WINDOWS_AMD64_TRIPLET)-objdump \
 		PREFIX=$(WINDOWS_AMD64_PREFIX) \
 		LIB_PREFIX=$(WINDOWS_AMD64_PREFIX)/bin \
-		GOGUIBUILDFLAGS='"-H windowsgui"' \
 		BINEXT=.exe \
 		DLLEXT=.dll \
 		all \
@@ -111,9 +112,9 @@ clean-windows-amd64:
 		GOOS=windows \
 		GOARCH=amd64 \
 		TRIPLET=$(WINDOWS_AMD64_TRIPLET) \
+		OBJDUMP=$(WINDOWS_AMD64_TRIPLET)-objdump \
 		PREFIX=$(WINDOWS_AMD64_PREFIX) \
 		LIB_PREFIX=$(WINDOWS_AMD64_PREFIX)/bin \
-		GOGUIBUILDFLAGS="-H windowsgui" \
 		BINEXT=.exe \
 		DLLEXT=.dll \
 		clean
@@ -143,9 +144,9 @@ copy-libs-%: %
 #
 # Windows output only.
 copy-libs:
-	$(TRIPLET)-objdump -p $(TARGET) | \
-		grep -F "DLL Name:" | \
-		sed -e "s/\t*DLL Name: //g" | \
+	$(OBJDUMP) -p $(TARGET) | \
+		grep -E "NEEDED|DLL Name:" | \
+		sed -e "s/\t*DLL Name: //g" -e "s/\s*NEEDED\s*//g"  | \
 		grep -Evi $(DLL_BLACKLIST) | \
 		tr "\n" " " | \
 		xargs -r -t $(MAKE)
