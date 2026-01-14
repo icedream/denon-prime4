@@ -154,5 +154,12 @@ copy-libs:
 	cp $< $@
 	$(MAKE) -s TARGET=$@ copy-libs
 
-clean:
+.PHONY: clean-fltk
+
+clean-fltk:
+	$(RM) -r fltk_build
+
+.PHONY: clean
+
+clean: clean-fltk
 	$(RM) $(wildcard updater$(BINEXT) *$(DLLEXT))
