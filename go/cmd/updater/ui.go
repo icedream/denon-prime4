@@ -425,6 +425,7 @@ func initUI() error {
 	if err != nil {
 		logger.Error("Failed to initialize updater",
 			"err", err)
+		return err
 	}
 	if flagDryRun != nil {
 		updater.DryRun = *flagDryRun
@@ -439,10 +440,13 @@ func initUI() error {
 		)
 		err := runUI(updater, window)
 		if err != nil {
-			log.Fatal(err)
+			logger.Error("Failed to run UI",
+				"err", err)
+			os.Exit(1)
 		}
 		os.Exit(0)
 	}()
+
 	app.Main()
 	return nil
 }
