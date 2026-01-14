@@ -47,10 +47,10 @@ build-fltk: go-mod-download
 
 	#cd $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk) && go generate
 
-	mkdir -p fltk_build
-	cd fltk_build && if [ -d fltk ]; then cd fltk && git fetch; else git clone https://github.com/fltk/fltk.git fltk; fi
-	cd fltk_build/fltk && git reset --hard && git clean -ffdx && git checkout $(shell grep -Po 'commit = "\K.+(?=")' $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/fltk-build.go)
-	cd fltk_build/fltk && [ $(shell go env GOOS) != windows ] || git apply $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/lib/fltk-1.4.patch
+	mkdir -p fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)
+	cd fltk_build/$(shell go env GOOS)/$(shell go env GOARCH) && if [ -d fltk ]; then cd fltk && git fetch; else git clone https://github.com/fltk/fltk.git fltk; fi
+	cd fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/fltk && git reset --hard && git clean -ffdx && git checkout $(shell grep -Po 'commit = "\K.+(?=")' $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/fltk-build.go)
+	cd fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/fltk && [ $(shell go env GOOS) != windows ] || git apply $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/lib/fltk-1.4.patch
 	gen="Unix Makefiles"; if [ $(shell go env GOOS) = windows ] && [ $(shell uname -s) = windows ]; then gen="MinGW Makefiles"; fi; \
 	if [ $(shell go env GOOS) = windows ]; then sysname="Windows"; \
 	elif [ $(shell go env GOOS) = darwin ]; then sysname="Darwin"; \
@@ -60,8 +60,8 @@ build-fltk: go-mod-download
 	if [ $(shell go env GOARCH) = amd64 ]; then proc=x86_64; fi; \
 	cmake \
 		-G "$$gen" \
-		-S fltk_build/fltk \
-		-B fltk_build/build \
+		-S fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/fltk \
+		-B fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build \
 		"-DCMAKE_SYSTEM_NAME=$$sysname" \
 		"-DCMAKE_SYSTEM_PROCESSOR=$$proc" \
 		"-DCMAKE_FIND_ROOT_PATH=$(PREFIX)" \
@@ -83,7 +83,7 @@ build-fltk: go-mod-download
 		-DCMAKE_INSTALL_LIBDIR=lib/$(shell go env GOOS)/$(shell go env GOARCH) \
 		-DFLTK_INCLUDEDIR=$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/include/$(shell go env GOOS)/$(shell go env GOARCH) \
 		-DFLTK_LIBDIR=$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/lib/$(shell go env GOOS)/$(shell go env GOARCH)
-	$(MAKE) -C fltk_build/build all install
+	$(MAKE) -C fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build all install
 
 #
 # WINDOWS AMD64 BUILD CONVENIENCE TASKS
