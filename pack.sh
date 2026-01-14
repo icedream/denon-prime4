@@ -38,5 +38,5 @@ for file in "${files[@]}"; do
   #dtc -I dts -O dtb "$file" > "$dtb"
 
   log "*** Generating FIT $dtb"
-  mkimage -f "$file" "$dtb"
+  mkimage -t -f "$file" "$dtb"
 done
