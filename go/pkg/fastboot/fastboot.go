@@ -202,7 +202,7 @@ func (fb *FastBootChannel) TextC() <-chan string {
 //
 // An error will be returned if a FAIL or any response type that is not OKAY,
 // TEXT or INFO is transmitted back by the client.
-func (fb *FastBootChannel) Command(ctx context.Context, cmd string, param ...interface{}) ([]byte, error) {
+func (fb *FastBootChannel) Command(ctx context.Context, cmd string, param ...any) ([]byte, error) {
 	msg := fmt.Appendf(nil, cmd, param...)
 	fb.logger.Debug("H->C\n" + hex.Dump(msg))
 	if _, err := fb.w.WriteContext(ctx, msg); err != nil {
