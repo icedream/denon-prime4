@@ -84,6 +84,20 @@ build-fltk: go-mod-download
 		-DFLTK_INCLUDEDIR=$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/include/$(shell go env GOOS)/$(shell go env GOARCH) \
 		-DFLTK_LIBDIR=$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/lib/$(shell go env GOOS)/$(shell go env GOARCH)
 	$(MAKE) -C fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build all install
+	
+	cd $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk) && (\
+		echo "//go:build $(shell go env GOOS) && $(shell go env GOARCH)" &&\
+		echo "" &&\
+		echo "package fltk" &&\
+		echo "" &&\
+		echo "// #cgo $(shell go env GOOS),$(shell go env GOARCH) CXXFLAGS: -std=c++11" &&\
+		if [ $(shell go env GOOS) = windows ]; then \
+			echo '// #cgo $(shell go env GOOS),$(shell go env GOARCH) CPPFLAGS: -I$${SRCDIR}/include/$(shell go env GOOS)/$(shell go env GOARCH) -I$${SRCDIR}/include/$(shell go env GOOS)/$(shell go env GOARCH)/FL/images -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64' &&\
+			echo '// #cgo $(shell go env GOOS),$(shell go env GOARCH) LDFLAGS: -mwindows $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_images.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_jpeg.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_png.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_z.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_gl.a -lglu32 -lopengl32 $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_forms.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk.a -lgdiplus -lole32 -luuid -lcomctl32 -lws2_32 -lwinspool';\
+		fi &&\
+		echo 'import "C"' &&\
+		echo ""\
+	)>"cgo_$(shell go env GOOS)_$(shell go env GOARCH).go"
 
 #
 # WINDOWS AMD64 BUILD CONVENIENCE TASKS
@@ -114,6 +128,39 @@ clean-windows-amd64:
 		OBJDUMP=$(WINDOWS_AMD64_TRIPLET)-objdump \
 		PREFIX=$(WINDOWS_AMD64_PREFIX) \
 		LIB_PREFIX=$(WINDOWS_AMD64_PREFIX)/bin \
+		BINEXT=.exe \
+		DLLEXT=.dll \
+		clean
+
+#
+# WINDOWS 386 BUILD CONVENIENCE TASKS
+#
+
+.PHONY: all-windows-386
+
+all-windows-386:
+	$(MAKE) \
+		GOOS=windows \
+		GOARCH=386 \
+		TRIPLET=$(WINDOWS_386_TRIPLET) \
+		OBJDUMP=$(WINDOWS_386_TRIPLET)-objdump \
+		PREFIX=$(WINDOWS_386_PREFIX) \
+		LIB_PREFIX=$(WINDOWS_386_PREFIX)/bin \
+		BINEXT=.exe \
+		DLLEXT=.dll \
+		all \
+		$(addprefix copy-libs-,$(addsuffix .exe,$(BINS)))
+
+.PHONY: clean-windows-386
+
+clean-windows-386:
+	$(MAKE) \
+		GOOS=windows \
+		GOARCH=386 \
+		TRIPLET=$(WINDOWS_386_TRIPLET) \
+		OBJDUMP=$(WINDOWS_386_TRIPLET)-objdump \
+		PREFIX=$(WINDOWS_386_PREFIX) \
+		LIB_PREFIX=$(WINDOWS_386_PREFIX)/bin \
 		BINEXT=.exe \
 		DLLEXT=.dll \
 		clean
