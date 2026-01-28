@@ -103,6 +103,20 @@ build-fltk: go-mod-download
 # WINDOWS AMD64 BUILD CONVENIENCE TASKS
 #
 
+.PHONY: copy-libs-windows-amd64
+
+copy-libs-windows-amd64:
+	$(MAKE) \
+		GOOS=windows \
+		GOARCH=amd64 \
+		TRIPLET=$(WINDOWS_AMD64_TRIPLET) \
+		OBJDUMP=$(WINDOWS_AMD64_TRIPLET)-objdump \
+		PREFIX=$(WINDOWS_AMD64_PREFIX) \
+		LIB_PREFIX=$(WINDOWS_AMD64_PREFIX)/bin \
+		BINEXT=.exe \
+		DLLEXT=.dll \
+		$(addprefix copy-libs-,$(addsuffix .exe,$(BINS)))
+
 .PHONY: all-windows-amd64
 
 all-windows-amd64:
