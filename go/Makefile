@@ -150,6 +150,20 @@ clean-windows-amd64:
 # WINDOWS 386 BUILD CONVENIENCE TASKS
 #
 
+.PHONY: copy-libs-windows-386
+
+copy-libs-windows-386:
+	$(MAKE) \
+		GOOS=windows \
+		GOARCH=386 \
+		TRIPLET=$(WINDOWS_386_TRIPLET) \
+		OBJDUMP=$(WINDOWS_386_TRIPLET)-objdump \
+		PREFIX=$(WINDOWS_386_PREFIX) \
+		LIB_PREFIX=$(WINDOWS_386_PREFIX)/bin \
+		BINEXT=.exe \
+		DLLEXT=.dll \
+		$(addprefix copy-libs-,$(addsuffix .exe,$(BINS)))
+
 .PHONY: all-windows-386
 
 all-windows-386:

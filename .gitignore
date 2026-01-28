@@ -13,3 +13,7 @@
 /media/
 /unpacked-img/
 /updater/
+
+/*_mali_*
+/mali*
+/libmali*
