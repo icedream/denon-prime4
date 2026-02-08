@@ -21,10 +21,10 @@ DLL_BLACKLIST=$(WINDOWS_DLL_BLACKLIST)"|"$(LINUX_DLL_BLACKLIST)
 LIB_PREFIX=$(PREFIX)/lib
 BINS=find_update updater
 GOBUILDFLAGS=
-GOBUILDLDFLAGS='-s -w -extldflags "-fno-PIC -static"'
+GOBUILDLDFLAGS='-s -w -extldflags "-fno-PIC"'
 GOBUILDFLAGS=-buildmode pie -v
 GOBUILDGUIFLAGS=
-GOBUILDGUILDFLAGS='-H windowsgui'
+GOBUILDGUILDFLAGS=
 
 export CC CXX GOOS GOARCH CGO_ENABLED
 
@@ -142,6 +142,8 @@ all-windows-amd64:
 		OBJDUMP=$(WINDOWS_AMD64_TRIPLET)-objdump \
 		PREFIX=$(WINDOWS_AMD64_PREFIX) \
 		LIB_PREFIX=$(WINDOWS_AMD64_PREFIX)/bin \
+		'GOBUILDLDFLAGS="-s -w -extldflags \"-fno-PIC -static\""' \
+		'GOBUILDGUILDFLAGS="-H windowsgui"' \
 		BINEXT=.exe \
 		DLLEXT=.dll \
 		all \
@@ -175,6 +177,8 @@ copy-libs-windows-386:
 		OBJDUMP=$(WINDOWS_386_TRIPLET)-objdump \
 		PREFIX=$(WINDOWS_386_PREFIX) \
 		LIB_PREFIX=$(WINDOWS_386_PREFIX)/bin \
+		'GOBUILDLDFLAGS="-s -w -extldflags \"-fno-PIC -static\""' \
+		'GOBUILDGUILDFLAGS="-H windowsgui"' \
 		BINEXT=.exe \
 		DLLEXT=.dll \
 		$(addprefix copy-libs-,$(addsuffix .exe,$(BINS)))
@@ -240,7 +244,7 @@ copy-libs:
 		tr "\n" " " | \
 		xargs -r -t $(MAKE)
 
-%$(DLLEXT): $(LIB_PREFIX)/%$(DLLEXT)
+%: $(LIB_PREFIX)/%
 	cp $< $@
 	$(MAKE) -s TARGET=$@ copy-libs
 
