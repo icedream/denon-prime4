@@ -43,6 +43,8 @@ go-mod-download:
 # Needed to fix up incompatibilities within mingw
 #
 build-fltk: go-mod-download
+	if [ -z "$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)" ]; then echo "ERROR: go-fltk dir not resolvable" >&2; exit 1; fi
+
 	chmod -R +w $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)
 
 	#cd $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk) && go generate
