@@ -19,10 +19,12 @@ LINUX_DLL_BLACKLIST="^((libc|libresolv).so)([\.[:digit:]+]+)\$$"
 WINDOWS_DLL_BLACKLIST="^(advapi32.dll|comctl32.dll|comdlg32.dll|gdi32.dll|kernel32.dll|gdi32.dll|gdiplus.dll|glu32.dll|msvcrt.dll|ole32.dll|opengl32.dll|shell32.dll|user32.dll|ws2_32.dll|api-ms-.+|.+.drv)\$$"
 DLL_BLACKLIST=$(WINDOWS_DLL_BLACKLIST)"|"$(LINUX_DLL_BLACKLIST)
 LIB_PREFIX=$(PREFIX)/lib
-BINS=find_update updater
-GOGUIBUILDFLAGS=
-GOBUILDLDFLAGS="-s -w"
+BINS=hello find_update updater
 GOBUILDFLAGS=
+GOBUILDLDFLAGS='-s -w -extldflags "-fno-PIC -static"'
+GOBUILDFLAGS=-buildmode pie -v
+GOBUILDGUIFLAGS=
+GOBUILDGUILDFLAGS='-H windowsgui'
 
 export CC CXX GOOS GOARCH CGO_ENABLED
 
@@ -214,7 +216,7 @@ find_update$(BINEXT): go.mod go.sum $(wildcard ./pkg/**/*.go ./cmd/find_update/*
 	$(GO) build -tags $(GOTAGS) -ldflags $(GOBUILDLDFLAGS) $(GOBUILDFLAGS) -o $@ -v ./cmd/find_update
 
 updater$(BINEXT): go.mod go.sum $(wildcard ./pkg/**/*.go ./cmd/updater/**/*.go) build-fltk
-	$(GO) build -tags $(GOTAGS) -ldflags $(GOGUIBUILDFLAGS)\ $(GOBUILDLDFLAGS) $(GOBUILDFLAGS) -o $@ -v ./cmd/updater
+	$(GO) build -tags $(GOTAGS) -ldflags $(GOBUILDLDFLAGS)\ $(GOBUILDGUILDFLAGS) $(GOBUILDFLAGS) $(GOBUILDGUIFLAGS) -o $@ -v ./cmd/updater
 
 #
 # PACKAGING TASKS
