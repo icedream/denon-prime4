@@ -2,7 +2,7 @@
 
 . ./functions.sh
 
-lzma_sdk_url="https://www.7-zip.org/a/lzma2107.7z"
+lzma_sdk_url="https://www.7-zip.org/a/lzma2501.7z"
 lzma_sdk_filename="${lzma_sdk_url##*/}"
 
 if ! command -v 7z >/dev/null; then
