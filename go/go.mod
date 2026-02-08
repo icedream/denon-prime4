@@ -32,7 +32,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pierrec/lz4/v4 v4.1.23 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/pwiecz/go-fltk v0.0.0-20250907211154-fece90b904c8 // indirect
+	github.com/pwiecz/go-fltk v0.0.0-20250907204850-96f969d0704b // indirect
 	github.com/samber/lo v1.52.0 // indirect
 	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/samber/slog-multi v1.7.0 // indirect

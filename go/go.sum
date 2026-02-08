@@ -57,6 +57,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pwiecz/go-fltk v0.0.0-20240511142305-990b442ae1ed h1:7/j/4x3KAwuJB9sWdfhi+1UFbv42TyJ4LyUI/GHS+p8=
 github.com/pwiecz/go-fltk v0.0.0-20240511142305-990b442ae1ed/go.mod h1:uMK5daOr9p+ba2BPs5QadbfaqqrHR5TGj13yWGsAsmw=
+github.com/pwiecz/go-fltk v0.0.0-20250907204850-96f969d0704b h1:BxTDo/GmJ8vbOpewVMcYegB6u/5MnL8AzG8Ux3IILb4=
+github.com/pwiecz/go-fltk v0.0.0-20250907204850-96f969d0704b/go.mod h1:uMK5daOr9p+ba2BPs5QadbfaqqrHR5TGj13yWGsAsmw=
 github.com/pwiecz/go-fltk v0.0.0-20250907211154-fece90b904c8 h1:HLliWv30bTAo+2J3tnxmNelW5PiQIPnww4XHX/x0T1I=
 github.com/pwiecz/go-fltk v0.0.0-20250907211154-fece90b904c8/go.mod h1:uMK5daOr9p+ba2BPs5QadbfaqqrHR5TGj13yWGsAsmw=
 github.com/roblillack/spot v0.3.2 h1:yqxCnkMk57Dc+o33dxh1c8ZXGx3kyMEV7GYkAP5z5OU=
