@@ -86,14 +86,25 @@ build-fltk: go-mod-download
 		-DFLTK_INCLUDEDIR=$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/include/$(shell go env GOOS)/$(shell go env GOARCH) \
 		-DFLTK_LIBDIR=$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/lib/$(shell go env GOOS)/$(shell go env GOARCH)
 	$(MAKE) -C fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build all install
-	
+	chmod +x ./fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build/bin/fltk-config
 	cd $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk) && (\
 		echo "//go:build $(shell go env GOOS) && $(shell go env GOARCH)" &&\
 		echo "" &&\
 		echo "package fltk" &&\
 		echo "" &&\
 		echo "// #cgo $(shell go env GOOS),$(shell go env GOARCH) CXXFLAGS: -std=c++11" &&\
-		if [ $(shell go env GOOS) = windows ]; then \
+		if [ $(shell go env GOOS) != windows ]; then \
+			cxx_output="$$(\
+				$(CURDIR)/fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build/bin/fltk-config  --use-gl --use-images --use-forms --cxxflags |\
+				sed -e 's#$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)#$${SRCDIR}#g' \
+			)" &&\
+			echo '// #cgo $(shell go env GOOS),$(shell go env GOARCH) CPPFLAGS: '"$${cxx_output}" &&\
+			ld_output="$$(\
+				$(CURDIR)/fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build/bin/fltk-config  --use-gl --use-images --use-forms --ldstaticflags |\
+				sed -e 's#$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)#$${SRCDIR}#g' \
+			)" &&\
+			echo '// #cgo $(shell go env GOOS),$(shell go env GOARCH) LDFLAGS: '"$${ld_output}" ;\
+		else \
 			echo '// #cgo $(shell go env GOOS),$(shell go env GOARCH) CPPFLAGS: -I$${SRCDIR}/include/$(shell go env GOOS)/$(shell go env GOARCH) -I$${SRCDIR}/include/$(shell go env GOOS)/$(shell go env GOARCH)/FL/images -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64' &&\
 			echo '// #cgo $(shell go env GOOS),$(shell go env GOARCH) LDFLAGS: -mwindows $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_images.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_jpeg.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_png.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_z.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_gl.a -lglu32 -lopengl32 $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_forms.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk.a -lgdiplus -lole32 -luuid -lcomctl32 -lws2_32 -lwinspool';\
 		fi &&\
