@@ -29,13 +29,18 @@ You can either extract the original Denon DJ firmware install tool and use it to
 
 #### Based on Denon's original updater tool
 
+This will limit you to flashing from Windows.
+
 1. Run `./unpack-updater.sh` to download Denon's original Windows tool for flashing firmware via USB cable.
 2. Run `./generate-updater-win.sh` to download 7-zip's SFX module to generate a self-extracting executable based on that tool but with your own image instead.
 
 #### Based on the new updater tool
 
+This will build a tool for both Windows and Linux.
+
 1. Install [Go](https://go.dev/) 1.22 or newer.
-2. Run `./generate-new-updater-win.sh` to download 7-zip's SFX module to generate a self-extracting executable based on that tool but with your own image instead.
+2. (if you want a Windows tool:) Run `./generate-new-updater-win.sh` to download 7-zip's SFX module to generate a self-extracting executable based on that tool but with your own image instead.
+3. (if you want a Linux tool:) Install [makeself](https://makeself.io) and run `./generate-updater-linux.sh`.
 
 ## Customizations
 
