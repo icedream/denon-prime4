@@ -57,5 +57,5 @@ exec ./updater "$@"
 EOF
     chmod -v +x "$startup_script"
   )
-  "${MAKESELF:-makeself}" --nocomp --follow "$archive_dir" "$run_name" "${device_name} Firmware Updater" "$startup_script"
+  "${MAKESELF:-makeself}" --zstd --nomd5 --complevel 18 --sha256  --nox11 --nowait --follow "$archive_dir" "$run_name" "${device_name} Firmware Updater" "$startup_script"
 done
