@@ -256,4 +256,4 @@ clean-fltk:
 .PHONY: clean
 
 clean: clean-fltk
-	$(RM) $(wildcard updater$(BINEXT) *$(DLLEXT))
+	$(RM) $(wildcard updater$(BINEXT) *$(DLLEXT) *$(DLLEXT).*)
