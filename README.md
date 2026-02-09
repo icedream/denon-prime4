@@ -39,8 +39,8 @@ This will limit you to flashing from Windows.
 This will build a tool for both Windows and Linux.
 
 1. Install [Go](https://go.dev/) 1.22 or newer.
-2. (if you want a Windows tool:) Run `./generate-new-updater-win.sh` to download 7-zip's SFX module to generate a self-extracting executable based on that tool but with your own image instead.
-3. (if you want a Linux tool:) Install [makeself](https://makeself.io) and run `./generate-updater-linux.sh`.
+2. (if you want a Windows tool:) Install [MinGW-w64](https://www.mingw-w64.org/) and [libusb](https://libusb.info/) using it. Run `./generate-new-updater-win.sh` to download 7-zip's SFX module to generate a self-extracting executable based on that tool but with your own image instead.
+3. (if you want a Linux tool:) Install libusb and [makeself](https://makeself.io) and run `./generate-updater-linux.sh`.
 
 ## Customizations
 
