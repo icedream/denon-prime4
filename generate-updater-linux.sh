@@ -12,7 +12,11 @@ if [ "${#files[@]}" -lt 1 ]; then
   log_fatal "Need at least one .dtb file to process. Generate it with ./pack.sh or put it into the current working directory ($(pwd))."
 fi
 
-make -C go updater copy-libs-updater
+GOOS="${GOOS:-linux}"
+GOARCH="${GOARCH:-amd64}"
+
+make -C go GOOS="$GOOS" GOARCH="$GOARCH" "updater_${GOOS}_${GOARCH}"
+make -C go GOOS="$GOOS" GOARCH="$GOARCH" TARGET="updater_${GOOS}_${GOARCH}" copy-libs
 
 tempdir=$(mktemp -d)
 trap 'rm -rf ${tempdir}' EXIT
@@ -44,7 +48,7 @@ EOF
   trap 'rm -rf "$archive_dir"' EXIT
   (
     cd "$archive_dir"
-    ln -vs ../go/updater
+    ln -vs "../go/updater_${GOOS}_${GOARCH}" updater
     for so in ../go/*.so*; do
        ln -vs "$so"
     done

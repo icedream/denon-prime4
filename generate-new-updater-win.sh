@@ -32,7 +32,8 @@ if [ "${#files[@]}" -lt 1 ]; then
   log_fatal "Need at least one .dtb file to process. Generate it with ./pack.sh or put it into the current working directory ($(pwd))."
 fi
 
-make -C go all-windows-amd64
+# This will generate go/updater_windows_amd64.exe
+make -C go all-windows-amd64 BINS=updater
 
 tempdir=$(mktemp -d)
 trap 'rm -rf ${tempdir}' EXIT
@@ -57,15 +58,21 @@ usbWriteSize = 4096
 usbWriteBufferSize = 0
 usbOpTimeout = "1m"
 EOF
+  cat >"$tempdir"/sfx-config.txt <<EOF
+;!@Install@!UTF-8!
+Title="engine os Custom Firmware"
+RunProgram="updater_windows_amd64.exe"
+;!@InstallEnd@!
+EOF
   for sfx_file in "${sfx[@]}"; do
     sfx_name="newupdater"
     exe_name="${dtb_name}_${sfx_name}.exe"
     archive_name="${dtb_name}_${sfx_name}.7z"
     echo "*** Packing updater files"
     # NOTE - keep ./ to make 7z strip dir paths
-    7z a "$archive_name" ./go/updater.exe ./go/*.dll "$tempdir"/./config.toml "${dtb_dir}"/./"${dtb_name}".dtb
+    7z a "$archive_name" ./go/updater_windows_amd64.exe ./go/*.dll "$tempdir"/./config.toml "${dtb_dir}"/./"${dtb_name}".dtb
     trap 'rm -f "$archive_name"' EXIT
     echo "*** Generating ${exe_name} with ${sfx_file}"
-    cat "${sfx_file}" sfx-config.txt "$archive_name" >"$exe_name"
+    cat "${sfx_file}" "$tempdir"/./sfx-config.txt "$archive_name" >"$exe_name"
   done
 done

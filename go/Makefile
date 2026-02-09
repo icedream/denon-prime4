@@ -10,8 +10,8 @@ WINDOWS_386_PREFIX=/usr/$(WINDOWS_386_TRIPLET)
 GOTAGS=libxz,osusergo,netgo,static_build
 LINUX_AMD64_TRIPLET=x86_64-linux-gnu
 GO=go
-GOOS=
-GOARCH=
+GOOS=$(shell $(GO) env GOOS)
+GOARCH=$(shell $(GO) env GOARCH)
 CGO_ENABLED=1
 DLLEXT=.so
 BINEXT=
@@ -20,6 +20,7 @@ WINDOWS_DLL_BLACKLIST="^(advapi32.dll|comctl32.dll|comdlg32.dll|gdi32.dll|kernel
 DLL_BLACKLIST=$(WINDOWS_DLL_BLACKLIST)"|"$(LINUX_DLL_BLACKLIST)
 LIB_PREFIX=$(PREFIX)/lib
 BINS=find_update updater
+BINSUFFIX=_$(GOOS)_$(GOARCH)
 GOBUILDFLAGS=
 GOBUILDLDFLAGS='-s -w -extldflags "-fno-PIC"'
 GOBUILDFLAGS=-buildmode pie -v
@@ -30,7 +31,7 @@ export CC CXX GOOS GOARCH CGO_ENABLED
 
 .PHONY: all
 
-all: $(addsuffix $(BINEXT),$(BINS))
+all: $(addsuffix $(BINSUFFIX)$(BINEXT),$(BINS))
 
 .PHONY: go-mod-download
 
@@ -51,21 +52,21 @@ build-fltk: go-mod-download
 
 	#cd $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk) && go generate
 
-	mkdir -p fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)
-	cd fltk_build/$(shell go env GOOS)/$(shell go env GOARCH) && if [ -d fltk ]; then cd fltk && git fetch; else git clone https://github.com/fltk/fltk.git fltk; fi
-	cd fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/fltk && git reset --hard && git clean -ffdx && git checkout $(shell grep -Po 'commit = "\K.+(?=")' $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/fltk-build.go)
-	cd fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/fltk && [ $(shell go env GOOS) != windows ] || git apply $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/lib/fltk-1.4.patch
-	gen="Unix Makefiles"; if [ $(shell go env GOOS) = windows ] && [ $(shell uname -s) = windows ]; then gen="MinGW Makefiles"; fi; \
-	if [ $(shell go env GOOS) = windows ]; then sysname="Windows"; \
-	elif [ $(shell go env GOOS) = darwin ]; then sysname="Darwin"; \
-	elif [ $(shell go env GOOS) = linux ]; then sysname="Linux"; \
+	mkdir -p fltk_build/$(GOOS)/$(GOARCH)
+	cd fltk_build/$(GOOS)/$(GOARCH) && if [ -d fltk ]; then cd fltk && git fetch; else git clone https://github.com/fltk/fltk.git fltk; fi
+	cd fltk_build/$(GOOS)/$(GOARCH)/fltk && git reset --hard && git clean -ffdx && git checkout $(shell grep -Po 'commit = "\K.+(?=")' $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/fltk-build.go)
+	cd fltk_build/$(GOOS)/$(GOARCH)/fltk && [ $(GOOS) != windows ] || git apply $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/lib/fltk-1.4.patch
+	gen="Unix Makefiles"; if [ $(GOOS) = windows ] && [ $(shell uname -s) = windows ]; then gen="MinGW Makefiles"; fi; \
+	if [ $(GOOS) = windows ]; then sysname="Windows"; \
+	elif [ $(GOOS) = darwin ]; then sysname="Darwin"; \
+	elif [ $(GOOS) = linux ]; then sysname="Linux"; \
 	else sysname=$(shell uname -s); fi; \
-	proc=$(shell go env GOARCH); \
-	if [ $(shell go env GOARCH) = amd64 ]; then proc=x86_64; fi; \
+	proc=$(GOARCH); \
+	if [ $(GOARCH) = amd64 ]; then proc=x86_64; fi; \
 	cmake \
 		-G "$$gen" \
-		-S fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/fltk \
-		-B fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build \
+		-S fltk_build/$(GOOS)/$(GOARCH)/fltk \
+		-B fltk_build/$(GOOS)/$(GOARCH)/build \
 		"-DCMAKE_SYSTEM_NAME=$$sysname" \
 		"-DCMAKE_SYSTEM_PROCESSOR=$$proc" \
 		"-DCMAKE_FIND_ROOT_PATH=$(PREFIX)" \
@@ -83,36 +84,36 @@ build-fltk: go-mod-download
 		-DCMAKE_C_COMPILER=$(CC) \
 		-DCMAKE_CXX_COMPILER=$(CXX) \
 		-DCMAKE_INSTALL_PREFIX=$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk) \
-		-DCMAKE_INSTALL_INCLUDEDIR=include/$(shell go env GOOS)/$(shell go env GOARCH) \
-		-DCMAKE_INSTALL_LIBDIR=lib/$(shell go env GOOS)/$(shell go env GOARCH) \
-		-DFLTK_INCLUDEDIR=$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/include/$(shell go env GOOS)/$(shell go env GOARCH) \
-		-DFLTK_LIBDIR=$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/lib/$(shell go env GOOS)/$(shell go env GOARCH)
-	$(MAKE) -C fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build all install
-	chmod +x ./fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build/bin/fltk-config
+		-DCMAKE_INSTALL_INCLUDEDIR=include/$(GOOS)/$(GOARCH) \
+		-DCMAKE_INSTALL_LIBDIR=lib/$(GOOS)/$(GOARCH) \
+		-DFLTK_INCLUDEDIR=$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/include/$(GOOS)/$(GOARCH) \
+		-DFLTK_LIBDIR=$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)/lib/$(GOOS)/$(GOARCH)
+	$(MAKE) -C fltk_build/$(GOOS)/$(GOARCH)/build all install
+	chmod +x ./fltk_build/$(GOOS)/$(GOARCH)/build/bin/fltk-config
 	cd $(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk) && (\
-		echo "//go:build $(shell go env GOOS) && $(shell go env GOARCH)" &&\
+		echo "//go:build $(GOOS) && $(GOARCH)" &&\
 		echo "" &&\
 		echo "package fltk" &&\
 		echo "" &&\
-		echo "// #cgo $(shell go env GOOS),$(shell go env GOARCH) CXXFLAGS: -std=c++11" &&\
-		if [ $(shell go env GOOS) != windows ]; then \
+		echo "// #cgo $(GOOS),$(GOARCH) CXXFLAGS: -std=c++11" &&\
+		if [ $(GOOS) != windows ]; then \
 			cxx_output="$$(\
-				$(CURDIR)/fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build/bin/fltk-config  --use-gl --use-images --use-forms --cxxflags |\
+				$(CURDIR)/fltk_build/$(GOOS)/$(GOARCH)/build/bin/fltk-config  --use-gl --use-images --use-forms --cxxflags |\
 				sed -e 's#$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)#$${SRCDIR}#g' \
 			)" &&\
-			echo '// #cgo $(shell go env GOOS),$(shell go env GOARCH) CPPFLAGS: '"$${cxx_output}" &&\
+			echo '// #cgo $(GOOS),$(GOARCH) CPPFLAGS: '"$${cxx_output}" &&\
 			ld_output="$$(\
-				$(CURDIR)/fltk_build/$(shell go env GOOS)/$(shell go env GOARCH)/build/bin/fltk-config  --use-gl --use-images --use-forms --ldstaticflags |\
+				$(CURDIR)/fltk_build/$(GOOS)/$(GOARCH)/build/bin/fltk-config  --use-gl --use-images --use-forms --ldstaticflags |\
 				sed -e 's#$(shell $(GO) list -m -f '{{.Dir}}' github.com/pwiecz/go-fltk)#$${SRCDIR}#g' \
 			)" &&\
-			echo '// #cgo $(shell go env GOOS),$(shell go env GOARCH) LDFLAGS: '"$${ld_output}" ;\
+			echo '// #cgo $(GOOS),$(GOARCH) LDFLAGS: '"$${ld_output}" ;\
 		else \
-			echo '// #cgo $(shell go env GOOS),$(shell go env GOARCH) CPPFLAGS: -I$${SRCDIR}/include/$(shell go env GOOS)/$(shell go env GOARCH) -I$${SRCDIR}/include/$(shell go env GOOS)/$(shell go env GOARCH)/FL/images -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64' &&\
-			echo '// #cgo $(shell go env GOOS),$(shell go env GOARCH) LDFLAGS: -mwindows $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_images.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_jpeg.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_png.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_z.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_gl.a -lglu32 -lopengl32 $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk_forms.a $${SRCDIR}/lib/$(shell go env GOOS)/$(shell go env GOARCH)/libfltk.a -lgdiplus -lole32 -luuid -lcomctl32 -lws2_32 -lwinspool';\
+			echo '// #cgo $(GOOS),$(GOARCH) CPPFLAGS: -I$${SRCDIR}/include/$(GOOS)/$(GOARCH) -I$${SRCDIR}/include/$(GOOS)/$(GOARCH)/FL/images -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64' &&\
+			echo '// #cgo $(GOOS),$(GOARCH) LDFLAGS: -mwindows $${SRCDIR}/lib/$(GOOS)/$(GOARCH)/libfltk_images.a $${SRCDIR}/lib/$(GOOS)/$(GOARCH)/libfltk_jpeg.a $${SRCDIR}/lib/$(GOOS)/$(GOARCH)/libfltk_png.a $${SRCDIR}/lib/$(GOOS)/$(GOARCH)/libfltk_z.a $${SRCDIR}/lib/$(GOOS)/$(GOARCH)/libfltk_gl.a -lglu32 -lopengl32 $${SRCDIR}/lib/$(GOOS)/$(GOARCH)/libfltk_forms.a $${SRCDIR}/lib/$(GOOS)/$(GOARCH)/libfltk.a -lgdiplus -lole32 -luuid -lcomctl32 -lws2_32 -lwinspool';\
 		fi &&\
 		echo 'import "C"' &&\
 		echo ""\
-	)>"cgo_$(shell go env GOOS)_$(shell go env GOARCH).go"
+	)>"cgo_$(GOOS)_$(GOARCH).go"
 
 #
 # WINDOWS AMD64 BUILD CONVENIENCE TASKS
@@ -130,7 +131,7 @@ copy-libs-windows-amd64:
 		LIB_PREFIX=$(WINDOWS_AMD64_PREFIX)/bin \
 		BINEXT=.exe \
 		DLLEXT=.dll \
-		$(addprefix copy-libs-,$(addsuffix .exe,$(BINS)))
+		$(addprefix copy-libs-,$(addsuffix _windows_amd64.exe,$(BINS)))
 
 .PHONY: all-windows-amd64
 
@@ -147,7 +148,7 @@ all-windows-amd64:
 		BINEXT=.exe \
 		DLLEXT=.dll \
 		all \
-		$(addprefix copy-libs-,$(addsuffix .exe,$(BINS)))
+		$(addprefix copy-libs-,$(addsuffix _windows_amd64.exe,$(BINS)))
 
 .PHONY: clean-windows-amd64
 
@@ -181,7 +182,7 @@ copy-libs-windows-386:
 		'GOBUILDGUILDFLAGS="-H windowsgui"' \
 		BINEXT=.exe \
 		DLLEXT=.dll \
-		$(addprefix copy-libs-,$(addsuffix .exe,$(BINS)))
+		$(addprefix copy-libs-,$(addsuffix _windows_386.exe,$(BINS)))
 
 .PHONY: all-windows-386
 
@@ -196,7 +197,7 @@ all-windows-386:
 		BINEXT=.exe \
 		DLLEXT=.dll \
 		all \
-		$(addprefix copy-libs-,$(addsuffix .exe,$(BINS)))
+		$(addprefix copy-libs-,$(addsuffix _windows_386.exe,$(BINS)))
 
 .PHONY: clean-windows-386
 
@@ -216,10 +217,10 @@ clean-windows-386:
 # MAIN BINARY TARGETS
 #
 
-find_update$(BINEXT): go.mod go.sum $(wildcard ./pkg/**/*.go ./cmd/find_update/**/*.go)
+find_update$(BINSUFFIX)$(BINEXT): go.mod go.sum $(wildcard ./pkg/**/*.go ./cmd/find_update/**/*.go)
 	$(GO) build -tags $(GOTAGS) -ldflags $(GOBUILDLDFLAGS) $(GOBUILDFLAGS) -o $@ -v ./cmd/find_update
 
-updater$(BINEXT): go.mod go.sum $(wildcard ./pkg/**/*.go ./cmd/updater/**/*.go) build-fltk
+updater$(BINSUFFIX)$(BINEXT): go.mod go.sum $(wildcard ./pkg/**/*.go ./cmd/updater/**/*.go) build-fltk
 	$(GO) build -tags $(GOTAGS) -ldflags $(GOBUILDLDFLAGS)\ $(GOBUILDGUILDFLAGS) $(GOBUILDFLAGS) $(GOBUILDGUIFLAGS) -o $@ -v ./cmd/updater
 
 #
@@ -233,10 +234,8 @@ copy-libs-%: %
 
 .PHONY: copy-libs
 
-# Extract list of DLL files that are used by imports.
-#
-# Windows output only.
-copy-libs:
+# Extract list of shared library files that are used by imports, and copy them.
+copy-libs: $(TARGET)
 	$(OBJDUMP) -p $(TARGET) | \
 		grep -E "NEEDED|DLL Name:" | \
 		sed -e "s/\t*DLL Name: //g" -e "s/\s*NEEDED\s*//g"  | \
@@ -256,4 +255,4 @@ clean-fltk:
 .PHONY: clean
 
 clean: clean-fltk
-	$(RM) $(wildcard updater$(BINEXT) *$(DLLEXT) *$(DLLEXT).*)
+	$(RM) $(addsuffix $(BINSUFFIX)$(BINEXT),$(BINS)) *$(DLLEXT) *$(DLLEXT).*
