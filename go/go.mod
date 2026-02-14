@@ -13,7 +13,7 @@ require (
 	github.com/knadh/koanf/v2 v2.3.2
 	github.com/roblillack/spot v0.3.2
 	github.com/samber/slog-multi v1.7.0
-	github.com/sqweek/dialog v0.0.0-20240226140203-065105509627
+	github.com/sqweek/dialog v0.0.0-20260123140253-64c163d53aac
 	github.com/stretchr/testify v1.11.1
 	github.com/u-root/u-root v0.15.0
 	github.com/ulikunitz/xz v0.5.15
