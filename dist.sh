@@ -11,3 +11,4 @@ rm -rf unpacked-img
 ./unpack-updater.sh "$@"
 ./generate-updater-win.sh "$@"
 ./generate-new-updater-win.sh "$@"
+./generate-updater-linux.sh "$@"
