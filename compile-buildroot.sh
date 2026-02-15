@@ -65,6 +65,10 @@ if [ -n "${BR2_JLEVEL:-}" ]; then
   make_flags+=(BR2_JLEVEL="${BR2_JLEVEL}")
 fi
 
+if [ -n "${BR2_CCACHE:-}" ]; then
+  make_flags+=(BR2_CCACHE="${BR2_CCACHE}")
+fi
+
 if [ -n "${BR2_CCACHE_DIR:-}" ]; then
   make_flags+=(BR2_CCACHE_DIR="${BR2_CCACHE_DIR}")
 fi
