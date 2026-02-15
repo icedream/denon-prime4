@@ -5,6 +5,7 @@
 *.sfx
 *.dll
 *.so
+*.run
 /go/updater
 /go/find_update
 /buildroot/
