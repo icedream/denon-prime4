@@ -12,7 +12,7 @@ require (
 	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/v2 v2.3.2
 	github.com/roblillack/spot v0.3.2
-	github.com/samber/slog-multi v1.7.0
+	github.com/samber/slog-multi v1.8.0
 	github.com/sqweek/dialog v0.0.0-20260123140253-64c163d53aac
 	github.com/stretchr/testify v1.11.1
 	github.com/u-root/u-root v0.15.0
@@ -34,8 +34,8 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.23 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pwiecz/go-fltk v0.0.0-20250907204850-96f969d0704b // indirect
-	github.com/samber/lo v1.52.0 // indirect
-	github.com/samber/slog-common v0.19.0 // indirect
+	github.com/samber/lo v1.53.0 // indirect
+	github.com/samber/slog-common v0.21.0 // indirect
 	github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701 // indirect
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96 // indirect
 	golang.org/x/exp/shiny v0.0.0-20260112195511-716be5621a96 // indirect
