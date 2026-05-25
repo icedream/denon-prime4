@@ -50,6 +50,13 @@ This will build a tool for both Windows and Linux.
 
 ## Information
 
+### Engine OS 5.x
+
+Engine OS 5.x update images use a different AZ01 container format instead of
+the older U-Boot FIT / DTB image format documented below. See
+[ENGINE_OS_5_AZ01.md](ENGINE_OS_5_AZ01.md) for current notes from PRIME GO 5.0.1
+testing, including SSH enablement findings.
+
 ### Reboot into update mode from SSH
 
 Command `reboot loader` will reboot the device into update mode. The same command is called from the original `/usr/Engine/Scripts/engine` script.
@@ -92,7 +99,7 @@ These are just my own notes and findings in the original firmware.
   - systemd 247 -PAM -AUDIT -SELINUX -IMA -APPARMOR -SMACK -SYSVINIT -UTMP -LIBCRYPTSETUP -GCRYPT +GNUTLS -ACL +XZ -LZ4 +ZSTD -SECCOMP +BLKID +ELFUTILS +KMOD -IDN2 -IDN -PCRE2 default-hierarchy=hybrid
   - xz/liblzma 5.2.5
   - zstd 1.4.9
-  - …?
+  - ...?
 - Engine
   - Installed in /usr/Engine
   - Referenced to as "Planck", specifically versioned as `Planck-1.2.1-3210-g1ab18eaa`
