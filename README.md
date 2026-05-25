@@ -99,7 +99,7 @@ These are just my own notes and findings in the original firmware.
   - systemd 247 -PAM -AUDIT -SELINUX -IMA -APPARMOR -SMACK -SYSVINIT -UTMP -LIBCRYPTSETUP -GCRYPT +GNUTLS -ACL +XZ -LZ4 +ZSTD -SECCOMP +BLKID +ELFUTILS +KMOD -IDN2 -IDN -PCRE2 default-hierarchy=hybrid
   - xz/liblzma 5.2.5
   - zstd 1.4.9
-  - …?
+  - ...?
 - Engine
   - Installed in /usr/Engine
   - Referenced to as "Planck", specifically versioned as `Planck-1.2.1-3210-g1ab18eaa`
