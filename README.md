@@ -50,6 +50,13 @@ This will build a tool for both Windows and Linux.
 
 ## Information
 
+### Engine OS 5.x
+
+Engine OS 5.x update images use a different AZ01 container format instead of
+the older U-Boot FIT / DTB image format documented below. See
+[ENGINE_OS_5_AZ01.md](ENGINE_OS_5_AZ01.md) for current notes from PRIME GO 5.0.1
+testing, including SSH enablement findings.
+
 ### Reboot into update mode from SSH
 
 Command `reboot loader` will reboot the device into update mode. The same command is called from the original `/usr/Engine/Scripts/engine` script.
