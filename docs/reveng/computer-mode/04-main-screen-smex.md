@@ -63,8 +63,19 @@ Key classes found in the binary:
 | `NetworkMessageBlockStream` | TCP transport (same wire format) |
 | `FsTransferMessageBlockStream` | Filesystem transport (firmware update images) |
 
-Wire format: not yet fully decoded. Further analysis of `planck-remote-screen`
-required.
+Wire format decoded from `serato_device_akaisdk.dll` (Serato's Akai SDK for the Prime 4):
+
+```
+[uint32 BE: total content length]
+[uint32 BE: type string length]
+[bytes: type string UTF-8]       e.g. "smex.protocolversion"
+[uint32 BE: payload length]
+[bytes: payload]
+```
+
+The `SmexControlService::Received` handler reads two length-prefixed
+strings per message: the type name then the payload. Both strings use
+`[uint32 BE length][UTF-8 bytes]` encoding.
 
 ---
 
@@ -141,3 +152,30 @@ MidiOutputServiceClient
 ScreensaverTimer
 ScreensaverComponent
 ```
+
+---
+
+## Library and Deck Display Capability
+
+The `serato_device_akaisdk.dll` (Serato's implementation of the Akai SDK)
+exposes the following display data structures in the `Akai::RemoteScreen::DjDisplay`
+namespace. These confirm that the Prime 4 screen CAN display rich content
+from the connected DJ software, not just a static "connected" screen:
+
+| Struct / Enum | Purpose |
+|---|---|
+| `DeckDisplay` | Full deck state (track info, waveform position, loop, etc.) |
+| `ListRow` | A single row in a library list view |
+| `BrowserMode` | Which browse mode is active (library, cue list, etc.) |
+| `CuePoint` | Cue point display data |
+| `WaveformLocation` | Current playhead position for waveform display |
+| `ScrollBar` | Scroll bar state for lists |
+| `DeckPressEvent` | Touch/jog press event from the device |
+| `Question` | Dialog/confirmation popup |
+| `DeckDrawingStyle` | Visual style for the deck display |
+
+The SDK is accessed via a single export `CreateAkaiSDK()` which returns an
+opaque object. All API calls are via virtual methods on the returned object.
+
+The `AkaiSDKDevices::DeviceConnected` callback fires when a Prime 4 is
+detected, providing a `Device` object through which display updates are sent.

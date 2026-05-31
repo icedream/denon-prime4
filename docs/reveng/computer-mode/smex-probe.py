@@ -5,8 +5,12 @@ PRIME 4 Computer Mode - SMEX protocol probe script.
 Run this after the device is switched to Computer Mode
 (hold VIEW -> Sources -> laptop+USB icon -> Yes).
 
-The script tries multiple candidate MessageBlock wire formats
-to discover the correct framing for SMEX control messages.
+MessageBlock wire format (confirmed from serato_device_akaisdk.dll):
+  [uint32 BE: total content length]
+  [uint32 BE: type string length]
+  [bytes: type string UTF-8]
+  [uint32 BE: payload length]
+  [bytes: payload]
 """
 import usb.core, usb.util, struct, time, os, sys
 
@@ -14,8 +18,9 @@ VENDOR  = 0x15e4
 PRODUCT = 0xa008  # PRIME 4 Screen
 EP_OUT  = 0x02    # EP2 OUT bulk - host -> device
 EP_IN   = 0x81    # EP1 IN bulk  - device -> host
-EP_INT_OUT = 0x04 # EP4 OUT interrupt
-EP_INT_IN  = 0x83 # EP3 IN interrupt
+EP_INT_OUT = 0x04
+EP_INT_IN  = 0x83
+
 
 def open_device():
     dev = usb.core.find(idVendor=VENDOR, idProduct=PRODUCT)
@@ -28,8 +33,8 @@ def open_device():
     print(f"Opened PRIME 4 Screen (bus {dev.bus}, dev {dev.address})")
     return dev
 
+
 def read_all(dev, timeout=1000):
-    """Try to read from both IN endpoints."""
     results = []
     for ep, sz, name in [(EP_IN, 512, "bulk"), (EP_INT_IN, 64, "intr")]:
         try:
@@ -41,15 +46,53 @@ def read_all(dev, timeout=1000):
             results.append((name, f"ERR:{e}"))
     return results
 
-def probe(dev, label, payload, timeout=2000):
+
+def parse_response(raw):
+    """Try to parse an incoming MessageBlock."""
+    if len(raw) < 4:
+        return None
+    total_len = struct.unpack_from('>I', raw, 0)[0]
+    if len(raw) < 4 + total_len:
+        return None
+    pos = 4
+    strings = []
+    while pos < 4 + total_len:
+        if pos + 4 > len(raw):
+            break
+        slen = struct.unpack_from('>I', raw, pos)[0]
+        pos += 4
+        if pos + slen > len(raw):
+            break
+        s = raw[pos:pos+slen]
+        strings.append(s)
+        pos += slen
+    return strings
+
+
+def messageblock(type_str, payload=b""):
+    """Build a MessageBlock with the confirmed wire format."""
+    type_b    = type_str.encode('utf-8')
+    inner     = (struct.pack('>I', len(type_b)) + type_b +
+                 struct.pack('>I', len(payload)) + payload)
+    return struct.pack('>I', len(inner)) + inner
+
+
+def probe(dev, label, payload, ep=EP_OUT, timeout=2000):
     try:
-        n = dev.write(EP_OUT, payload, timeout=1000)
-        time.sleep(0.1)
+        n = dev.write(ep, payload, timeout=1000)
+        time.sleep(0.15)
         resp = read_all(dev, timeout)
         if resp:
             for ch, d in resp:
                 if isinstance(d, bytes):
-                    print(f"  [{label}] RESPONSE on {ch}: {d.hex()}")
+                    parsed = parse_response(d)
+                    print(f"  [{label}] RESPONSE on {ch} ({len(d)}B): {d.hex()}")
+                    if parsed:
+                        for i, s in enumerate(parsed):
+                            try:
+                                print(f"    string[{i}]: {repr(s.decode('utf-8'))}")
+                            except:
+                                print(f"    string[{i}]: {s.hex()}")
                     return d
         else:
             print(f"  [{label}] no response ({n}B sent)")
@@ -57,87 +100,53 @@ def probe(dev, label, payload, timeout=2000):
         print(f"  [{label}] error: {e}")
     return None
 
-def smex_msg_utf8(type_str, payload_bytes=b""):
-    """
-    Candidate format 1: [4B BE total-len][4B BE type-str-len][type-str UTF-8][4B BE payload-len][payload]
-    """
-    type_b = type_str.encode('utf-8')
-    inner = struct.pack('>I', len(type_b)) + type_b + struct.pack('>I', len(payload_bytes)) + payload_bytes
-    return struct.pack('>I', len(inner)) + inner
-
-def smex_msg_cstr(type_str, payload_bytes=b""):
-    """
-    Candidate format 2: [4B BE total-len][null-terminated type-str][4B BE payload-len][payload]
-    """
-    type_b = type_str.encode('utf-8') + b'\x00'
-    inner = type_b + struct.pack('>I', len(payload_bytes)) + payload_bytes
-    return struct.pack('>I', len(inner)) + inner
-
-def smex_msg_id(type_id, payload_bytes=b""):
-    """
-    Candidate format 3: [4B BE total-len][4B BE type-id][payload]
-    (numeric type IDs, no string)
-    """
-    inner = struct.pack('>I', type_id) + payload_bytes
-    return struct.pack('>I', len(inner)) + inner
-
-def stagelinq_msg(msg_id, payload):
-    """
-    Candidate format 4: StageLinQ wire format [4B BE len][payload]
-    where payload = [4B BE msgID][content...]
-    """
-    inner = struct.pack('>I', msg_id) + payload
-    return struct.pack('>I', len(inner)) + inner
 
 def main():
     dev = open_device()
 
-    print("\n--- Listening for spontaneous data (5s) ---")
-    for ch, d in read_all(dev, 5000):
+    print("\n--- Listening for spontaneous data (3s) ---")
+    for ch, d in read_all(dev, 3000):
         if isinstance(d, bytes):
             print(f"  Spontaneous {ch}: {d.hex()}")
+            parsed = parse_response(d)
+            if parsed:
+                for i, s in enumerate(parsed):
+                    print(f"    string[{i}]: {repr(s.decode('utf-8', errors='replace'))}")
 
-    token = os.urandom(16)
+    print("\n--- CONFIRMED FORMAT: [total_len][type_len][type][payload_len][payload] ---")
 
-    print("\n--- Format 1: [len][utf8-type-len][utf8-type][payload-len][payload] ---")
+    # Protocol version handshake - the first message to send
+    print("\n[1] smex.protocolversion (version=1)")
+    msg = messageblock("smex.protocolversion", b"\x00\x00\x00\x01")
+    probe(dev, "protocolversion", msg)
+
+    print("\n[2] smex.version (empty payload)")
+    probe(dev, "version", messageblock("smex.version"))
+
+    print("\n[3] smex.time.request (empty)")
+    probe(dev, "time.request", messageblock("smex.time.request"))
+
+    print("\n[4] smex.brightness.request (empty)")
+    probe(dev, "brightness.request", messageblock("smex.brightness.request"))
+
+    # Try sending version=1 as just the string "1"
+    print("\n[5] smex.protocolversion payload='1'")
+    probe(dev, "protocolversion-str", messageblock("smex.protocolversion", b"1"))
+
+    # Library browsing - the DjDisplay structs include ListRow, BrowserMode
+    print("\n[6] Testing library commands via smex")
+    for t in ["smex.unknown", "screen.library", "dj.library.request"]:
+        probe(dev, t, messageblock(t))
+
+    # Try sending on interrupt endpoint instead
+    print("\n--- Interrupt endpoint ---")
     for t in ["smex.protocolversion", "smex.version"]:
-        probe(dev, f"fmt1:{t}", smex_msg_utf8(t, b"\x00\x00\x00\x01"))
-
-    print("\n--- Format 2: [len][cstr-type][payload-len][payload] ---")
-    for t in ["smex.protocolversion", "smex.version"]:
-        probe(dev, f"fmt2:{t}", smex_msg_cstr(t, b"\x00\x00\x00\x01"))
-
-    print("\n--- Format 3: [len][type-id uint32][payload] (numeric IDs 0..5) ---")
-    for i in range(6):
-        probe(dev, f"fmt3:id={i}", smex_msg_id(i, b"\x01"))
-
-    print("\n--- Format 4: StageLinQ service announcement ---")
-    def utf16(s): b = s.encode('utf-16-be'); return struct.pack('>I',len(b))+b
-    svc = token + utf16("Mixxx") + struct.pack('>H', 51337)
-    probe(dev, "stagelinq:service-announce", stagelinq_msg(0x00000000, svc))
-
-    print("\n--- Format 4b: StageLinQ services request ---")
-    probe(dev, "stagelinq:services-request", stagelinq_msg(0x00000002, token))
-
-    print("\n--- Format 5: plain [len][payload] with 'smex' magic ---")
-    for magic in [b"smex", b"SMEX", b"\x00\x00\x00\x01"]:
-        probe(dev, f"magic:{magic.hex()}", struct.pack('>I', 8) + magic + b"\x00"*4)
-
-    print("\n--- Format 6: interrupt OUT endpoint ---")
-    for t in ["smex.protocolversion", "smex.version"]:
-        try:
-            n = dev.write(EP_INT_OUT, smex_msg_utf8(t, b""), timeout=500)
-            time.sleep(0.1)
-            resp = read_all(dev, 1000)
-            if resp:
-                print(f"  [intr:{t}] RESPONSE: {resp}")
-            else:
-                print(f"  [intr:{t}] no response ({n}B sent)")
-        except Exception as e:
-            print(f"  [intr:{t}] error: {e}")
+        msg = messageblock(t, b"\x00\x00\x00\x01")
+        probe(dev, f"intr:{t}", msg, ep=EP_INT_OUT, timeout=1000)
 
     usb.util.release_interface(dev, 0)
-    print("\nDone.")
+    print("\nDone. Run with device in Computer Mode for best results.")
+
 
 if __name__ == "__main__":
     main()
