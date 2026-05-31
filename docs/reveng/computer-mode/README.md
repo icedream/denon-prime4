@@ -26,6 +26,8 @@ reverse-engineered from:
 | Jog wheel SysEx commands | complete (from QML source) |
 | Jog wheel image format | complete (198x198 PNG, SysEx-chunked) |
 | Platter position MIDI | complete |
-| Main screen USB transport | identified (FunctionFS, EP2 OUT bulk) |
-| SMEX control message names | complete (from planck-remote-screen strings) |
-| MessageBlock wire format | incomplete - needs further analysis of planck-remote-screen |
+| Main screen USB transport | complete (EP4 OUT interrupt / EP3 IN interrupt for SMEX) |
+| SMEX control message names | complete (13 types, from binary strings) |
+| MessageBlock wire format | complete (decoded from serato_device_akaisdk.dll) |
+| Service ID routing byte | complete (0x00-0x04 per service) |
+| Live communication | not yet verified end-to-end (dwc2/ffs timing issue under investigation) |

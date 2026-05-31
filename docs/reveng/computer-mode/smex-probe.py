@@ -2,150 +2,159 @@
 """
 PRIME 4 Computer Mode - SMEX protocol probe script.
 
-Run this after the device is switched to Computer Mode
-(hold VIEW -> Sources -> laptop+USB icon -> Yes).
+Confirmed wire format (from serato_device_akaisdk.dll reverse engineering):
 
-MessageBlock wire format (confirmed from serato_device_akaisdk.dll):
-  [uint32 BE: total content length]
-  [uint32 BE: type string length]
-  [bytes: type string UTF-8]
-  [uint32 BE: payload length]
-  [bytes: payload]
+  MessageBlock:
+    [uint32 BE: total length]
+    [uint8:     service ID]    0x00=SMEX 0x01=PingPong 0x02=Image 0x03=Touch 0x04=MsgBlock
+    [service payload...]
+
+  SmexControlService payload (service 0x00):
+    [uint32 BE: type name length]
+    [bytes:     type name UTF-8]
+    [uint32 BE: payload length]
+    [bytes:     payload UTF-8]
+
+  PingPongService payload (service 0x01):
+    [uint32 BE: sequence ID]
+    [uint8:     type]          0x01=ping, 0x03=pong
+
+Endpoint map:
+  EP4 OUT (0x04, interrupt, 64B max) - host to device SMEX control
+  EP3 IN  (0x83, interrupt, 64B max) - device to host SMEX responses
+  EP2 OUT (0x02, bulk, 512B)         - host to device bulk data
+  EP1 IN  (0x81, bulk, 512B)         - device to host bulk data
+
+Connection sequence:
+  1. set_configuration(1)  - triggers ffs_func_set_alt ONCE
+  2. claim_interface(0)
+  3. Start reading EP3 IN and EP1 IN continuously
+  4. Write smex.protocolversion to EP4 OUT
 """
-import usb.core, usb.util, struct, time, os, sys
+import usb.core, usb.util, struct, time, threading, sys
 
 VENDOR  = 0x15e4
-PRODUCT = 0xa008  # PRIME 4 Screen
-EP_OUT  = 0x02    # EP2 OUT bulk - host -> device
-EP_IN   = 0x81    # EP1 IN bulk  - device -> host
-EP_INT_OUT = 0x04
-EP_INT_IN  = 0x83
+PRODUCT = 0xa008
+
+EP_SMEX_OUT  = 0x04   # interrupt OUT - SMEX control messages
+EP_SMEX_IN   = 0x83   # interrupt IN  - SMEX responses
+EP_BULK_OUT  = 0x02   # bulk OUT - large data
+EP_BULK_IN   = 0x81   # bulk IN  - large data
 
 
-def open_device():
+def build_smex(type_str, payload=""):
+    """Build a SMEX MessageBlock for EP4 OUT (interrupt, max 64B)."""
+    tb = type_str.encode('utf-8')
+    pb = payload.encode('utf-8') if isinstance(payload, str) else payload
+    inner = bytes([0x00])  # service ID = SmexControlService
+    inner += struct.pack('>I', len(tb)) + tb
+    inner += struct.pack('>I', len(pb)) + pb
+    return struct.pack('>I', len(inner)) + inner
+
+
+def build_ping(seq=1):
+    """Build a PingPong ping message for EP4 OUT."""
+    inner = bytes([0x01])  # service ID = PingPongService
+    inner += struct.pack('>I', seq) + bytes([0x01])  # seq + ping type
+    return struct.pack('>I', len(inner)) + inner
+
+
+def parse_response(data):
+    """Parse an incoming MessageBlock from EP3 IN."""
+    if len(data) < 5:
+        return None
+    total_len = struct.unpack_from('>I', data, 0)[0]
+    if len(data) < 4 + total_len:
+        return None
+    service_id = data[4]
+    payload = data[5:4 + total_len]
+
+    if service_id == 0x00:  # SmexControlService
+        if len(payload) < 4:
+            return {'service': 'smex', 'type': '?', 'value': '?'}
+        tlen = struct.unpack_from('>I', payload, 0)[0]
+        type_str = payload[4:4+tlen].decode('utf-8', errors='replace')
+        vlen = struct.unpack_from('>I', payload, 4+tlen)[0] if len(payload) >= 8+tlen else 0
+        value = payload[8+tlen:8+tlen+vlen].decode('utf-8', errors='replace')
+        return {'service': 'smex', 'type': type_str, 'value': value}
+    elif service_id == 0x01:  # PingPongService
+        if len(payload) >= 5:
+            seq = struct.unpack_from('>I', payload, 0)[0]
+            typ = payload[4]
+            return {'service': 'ping', 'seq': seq, 'type': typ}
+    return {'service': f'svc_{service_id:02x}', 'raw': data.hex()}
+
+
+def main():
     dev = usb.core.find(idVendor=VENDOR, idProduct=PRODUCT)
     if dev is None:
         print("PRIME 4 Screen not found. Is the device in Computer Mode?")
         sys.exit(1)
-    if dev.is_kernel_driver_active(0):
-        dev.detach_kernel_driver(0)
-    usb.util.claim_interface(dev, 0)
-    print(f"Opened PRIME 4 Screen (bus {dev.bus}, dev {dev.address})")
-    return dev
 
+    print(f"Found PRIME 4 Screen: bus={dev.bus} dev={dev.address}")
 
-def read_all(dev, timeout=1000):
-    results = []
-    for ep, sz, name in [(EP_IN, 512, "bulk"), (EP_INT_IN, 64, "intr")]:
-        try:
-            d = dev.read(ep, sz, timeout=timeout)
-            results.append((name, bytes(d)))
-        except usb.core.USBTimeoutError:
-            pass
-        except Exception as e:
-            results.append((name, f"ERR:{e}"))
-    return results
-
-
-def parse_response(raw):
-    """Try to parse an incoming MessageBlock."""
-    if len(raw) < 4:
-        return None
-    total_len = struct.unpack_from('>I', raw, 0)[0]
-    if len(raw) < 4 + total_len:
-        return None
-    pos = 4
-    strings = []
-    while pos < 4 + total_len:
-        if pos + 4 > len(raw):
-            break
-        slen = struct.unpack_from('>I', raw, pos)[0]
-        pos += 4
-        if pos + slen > len(raw):
-            break
-        s = raw[pos:pos+slen]
-        strings.append(s)
-        pos += slen
-    return strings
-
-
-def messageblock(type_str, payload=b""):
-    """Build a MessageBlock with the confirmed wire format."""
-    type_b    = type_str.encode('utf-8')
-    inner     = (struct.pack('>I', len(type_b)) + type_b +
-                 struct.pack('>I', len(payload)) + payload)
-    return struct.pack('>I', len(inner)) + inner
-
-
-def probe(dev, label, payload, ep=EP_OUT, timeout=2000):
+    # Step 1: SET_CONFIGURATION (once - triggers ffs_func_set_alt)
     try:
-        n = dev.write(ep, payload, timeout=1000)
-        time.sleep(0.15)
-        resp = read_all(dev, timeout)
-        if resp:
-            for ch, d in resp:
-                if isinstance(d, bytes):
-                    parsed = parse_response(d)
-                    print(f"  [{label}] RESPONSE on {ch} ({len(d)}B): {d.hex()}")
-                    if parsed:
-                        for i, s in enumerate(parsed):
-                            try:
-                                print(f"    string[{i}]: {repr(s.decode('utf-8'))}")
-                            except:
-                                print(f"    string[{i}]: {s.hex()}")
-                    return d
-        else:
-            print(f"  [{label}] no response ({n}B sent)")
-    except Exception as e:
-        print(f"  [{label}] error: {e}")
-    return None
+        if dev.is_kernel_driver_active(0):
+            dev.detach_kernel_driver(0)
+    except: pass
+    dev.set_configuration()
+    print("SET_CONFIGURATION sent")
+    time.sleep(0.5)
 
+    # Step 2: Claim interface
+    usb.util.claim_interface(dev, 0)
+    print("Interface 0 claimed")
 
-def main():
-    dev = open_device()
+    received = []
+    stop = threading.Event()
 
-    print("\n--- Listening for spontaneous data (3s) ---")
-    for ch, d in read_all(dev, 3000):
-        if isinstance(d, bytes):
-            print(f"  Spontaneous {ch}: {d.hex()}")
-            parsed = parse_response(d)
-            if parsed:
-                for i, s in enumerate(parsed):
-                    print(f"    string[{i}]: {repr(s.decode('utf-8', errors='replace'))}")
+    # Step 3: Keep IN endpoints polled continuously
+    def reader(ep, sz, name):
+        while not stop.is_set():
+            try:
+                d = dev.read(ep, sz, timeout=300)
+                parsed = parse_response(bytes(d))
+                received.append((name, bytes(d), parsed))
+                print(f"\n  *** {name} ({len(d)}B): {bytes(d).hex()}")
+                if parsed:
+                    print(f"      parsed: {parsed}")
+            except usb.core.USBTimeoutError:
+                pass
+            except Exception as e:
+                if not stop.is_set():
+                    print(f"  {name} error: {e}")
+                break
 
-    print("\n--- CONFIRMED FORMAT: [total_len][type_len][type][payload_len][payload] ---")
+    for ep, sz, name in [(EP_SMEX_IN, 64, "EP3-intr-IN"), (EP_BULK_IN, 512, "EP1-bulk-IN")]:
+        t = threading.Thread(target=reader, args=(ep, sz, name), daemon=True)
+        t.start()
 
-    # Protocol version handshake - the first message to send
-    print("\n[1] smex.protocolversion (version=1)")
-    msg = messageblock("smex.protocolversion", b"\x00\x00\x00\x01")
-    probe(dev, "protocolversion", msg)
+    time.sleep(0.3)
 
-    print("\n[2] smex.version (empty payload)")
-    probe(dev, "version", messageblock("smex.version"))
+    # Step 4: Send smex.protocolversion handshake
+    print("\n--- Sending smex.protocolversion ---")
+    msg = build_smex("smex.protocolversion", "1")
+    print(f"  EP4 OUT: {msg.hex()}")
+    dev.write(EP_SMEX_OUT, msg, timeout=2000)
 
-    print("\n[3] smex.time.request (empty)")
-    probe(dev, "time.request", messageblock("smex.time.request"))
+    # Also send on bulk in case both are needed
+    dev.write(EP_BULK_OUT, msg, timeout=2000)
 
-    print("\n[4] smex.brightness.request (empty)")
-    probe(dev, "brightness.request", messageblock("smex.brightness.request"))
+    # Send a ping
+    print("\n--- Sending ping ---")
+    ping = build_ping(1)
+    dev.write(EP_SMEX_OUT, ping, timeout=2000)
 
-    # Try sending version=1 as just the string "1"
-    print("\n[5] smex.protocolversion payload='1'")
-    probe(dev, "protocolversion-str", messageblock("smex.protocolversion", b"1"))
+    print("\nWaiting 10s for responses...")
+    time.sleep(10)
+    stop.set()
 
-    # Library browsing - the DjDisplay structs include ListRow, BrowserMode
-    print("\n[6] Testing library commands via smex")
-    for t in ["smex.unknown", "screen.library", "dj.library.request"]:
-        probe(dev, t, messageblock(t))
-
-    # Try sending on interrupt endpoint instead
-    print("\n--- Interrupt endpoint ---")
-    for t in ["smex.protocolversion", "smex.version"]:
-        msg = messageblock(t, b"\x00\x00\x00\x01")
-        probe(dev, f"intr:{t}", msg, ep=EP_INT_OUT, timeout=1000)
+    print(f"\nTotal received: {len(received)}")
+    for name, raw, parsed in received:
+        print(f"  {name}: {parsed or raw.hex()}")
 
     usb.util.release_interface(dev, 0)
-    print("\nDone. Run with device in Computer Mode for best results.")
 
 
 if __name__ == "__main__":
