@@ -104,12 +104,15 @@ mechanism on the connection.
 
 ## Image Streaming
 
-`ImageStreamEncoder::ReceiveComponentImage(juce::Image, juce::RectangleList<int>)`
-is the device-side entry point that receives rendered images from the host and
-paints them to the display. The dirty rectangle list enables partial updates.
+The `ImageStreamEncoder::ReceiveComponentImage(juce::Image, juce::RectangleList<int>)`
+method on the device side receives rendered component images and displays them on the
+device's own 800x1280 MIPI-DSI screen via the local DRM/KMS framebuffer (`/dev/fb0`,
+`/dev/dri/...`). This is **not** a USB transfer - the display is rendered locally.
 
-The host sends PNG-encoded images as MessageBlock payloads. The image content
-(track info, waveform, etc.) is composed on the host side before sending.
+Jog wheel images are sent separately over the MIDI SysEx interface (see `03-jog-wheel-sysex.md`).
+
+The `UsbGadgetMessageBlockStream` (FunctionFS bulk stream) carries only **small SMEX
+control messages** - not pixel or image data.
 
 ---
 
