@@ -18,12 +18,17 @@ application `planck-remote-screen` receives data and renders to the local frameb
 
 The FunctionFS gadget is named **smexstream** and exposes four endpoints:
 
-| EP address | Direction | Type | Max pkt | Purpose |
-|---|---|---|---|---|
-| `0x02` | OUT | Bulk | 512B | Host to device - large data (images etc.) |
-| `0x81` | IN | Bulk | 512B | Device to host - large data |
-| `0x04` | OUT | Interrupt | 64B | **Host to device - SMEX control messages** |
-| `0x83` | IN | Interrupt | 64B | **Device to host - SMEX responses** |
+| EP address | Direction | Type | Max pkt (FS/HS) | Used by planck | Purpose |
+|---|---|---|---|---|---|
+| `0x02` | OUT | Bulk | 64B / 512B | Yes (AIO PREAD) | Host to device - large data (images etc.) |
+| `0x81` | IN | Bulk | 64B / 512B | **No** | Reserved - planck never writes here |
+| `0x04` | OUT | Interrupt | 64B | Yes (AIO PREAD) | **Host to device - SMEX control messages** |
+| `0x83` | IN | Interrupt | 64B | **No** | Reserved - planck never writes here |
+
+**Protocol is UNIDIRECTIONAL** (host to device only). Confirmed by strace analysis
+of planck's full syscall trace at startup: planck only ever submits `IOCB_CMD_PREAD`
+operations on ep2 (fd=16) and ep4 (fd=18). No `IOCB_CMD_PWRITE` or `write()` calls
+are ever made to ep1 (fd=15) or ep3 (fd=17) under any circumstances.
 
 **Critical**: SMEX control messages go on the **interrupt endpoints** (EP4 OUT /
 EP3 IN), NOT the bulk endpoints. The bulk endpoints (EP2 OUT / EP1 IN) are for
@@ -38,16 +43,25 @@ larger data transfers.
 `planck-remote-screen` opens all five FunctionFS fds on startup:
 
 ```
-/dev/ffs-smexstream/ep0   (control - USB events)
-/dev/ffs-smexstream/ep1   (bulk IN  - device to host)
-/dev/ffs-smexstream/ep2   (bulk OUT - host to device)
-/dev/ffs-smexstream/ep3   (interrupt IN  - device to host)
-/dev/ffs-smexstream/ep4   (interrupt OUT - host to device)
+/dev/ffs-smexstream/ep0   (control - USB events, fd=14)
+/dev/ffs-smexstream/ep1   (bulk IN  - device to host, fd=15) <- UNUSED
+/dev/ffs-smexstream/ep2   (bulk OUT - host to device, fd=16) <- reads via AIO
+/dev/ffs-smexstream/ep3   (interrupt IN  - device to host, fd=17) <- UNUSED
+/dev/ffs-smexstream/ep4   (interrupt OUT - host to device, fd=18) <- reads via AIO
 ```
 
-It uses Linux AIO (`io_submit`, syscall 246) to submit 32 concurrent async
-reads on each OUT endpoint. All 9 IOCBs in a typical batch are PREAD on fd=16
-(ep2) or fd=18 (ep4). Responses are written to ep3 and ep1.
+Startup sequence (verified via strace with -f flag):
+1. Writes USB descriptor to ep0 (`write(14, descriptor, 133)`) - two alternate settings
+2. Writes UDC name to fd=20 (`write(20, "ff580000.usb", 12)`) - binds gadget
+3. Prints "Gadget state changed: connected" once host sends SET_CONFIGURATION
+4. Submits **32 AIO PREADs** on ep2 (fd=16), each 4096 bytes
+5. Submits **32 AIO PREADs** on ep4 (fd=18), each 64 bytes
+
+On each AIO completion (host wrote data):
+- `io_getevents` harvests the result (`res=64` for ep4, `res=4096` for ep2)
+- One new PREAD is re-submitted to maintain the pool
+- The FunctionFS thread calls the AIO callback inline (no JUCE notification)
+- **No writes to ep3 or ep1 occur at any point**
 
 ### Connection sequence
 
@@ -55,34 +69,36 @@ The USB gadget must be fully activated before communication is possible.
 The correct sequence from the host side is:
 
 1. Detect the device via `libusb_open_device_with_vid_pid(ctx, 0x15e4, 0xa008)`
-2. Call `libusb_set_configuration(h, 1)` **exactly once** to trigger
-   `ffs_func_set_alt` in the kernel, which binds the endpoints and wakes up
-   `planck-remote-screen`'s AIO reads
+2. Call `libusb_set_configuration(h, 1)` to trigger `ffs_func_set_alt` in the
+   kernel, which binds the endpoints and starts `planck-remote-screen`'s AIO reads
 3. Claim interface 0
-4. Submit reads on EP3 IN (interrupt) AND EP1 IN (bulk) immediately - the device
-   may send an initial announcement before the host sends anything
-5. Write `smex.protocolversion` to EP4 OUT (interrupt, max 64 bytes)
+4. Send SMEX commands to EP4 OUT (interrupt, **must be exactly 64 bytes** padded)
+5. Send image/bulk data to EP2 OUT (bulk, up to 4096 bytes per transfer)
 
-**Important**: Avoid calling `set_configuration()` more than once per planck
-instance. Each call to `set_configuration()` or `claim_interface()` that
-sends a SET_CONFIGURATION or SET_INTERFACE request causes `ffs_func_set_alt`
-to run again, which re-initialises the endpoints and resets any pending AIO
-reads. This creates a race condition where the host's writes land in the DMA
-buffer but the completion notification never fires for `planck-remote-screen`.
+**No response is expected** - the protocol is unidirectional. EP3 IN and EP1 IN
+exist in the USB descriptor but planck never writes to them.
+
+### 64B padding requirement
+
+All messages sent to EP4 OUT (interrupt endpoint, mps=64) **must be padded to
+exactly 64 bytes**. Messages shorter than 64 bytes cause the FunctionFS interrupt
+endpoint to not signal completion properly, and `io_getevents` on the device side
+never returns for those transfers. This was confirmed experimentally:
+- Unpadded messages: `io_getevents` never fires, message is silently dropped
+- 64B padded messages: `io_getevents` returns `res=64`, message is processed
+
+For EP2 OUT (bulk), messages can be variable length up to 4096 bytes per transfer.
 
 ### Known issue with repeated re-enumeration
 
 During testing it was observed that the dwc2 USB OTG controller on the RK3288
-(ff580000.usb) correctly receives bulk/interrupt OUT data into DMA buffers (verified
-by reading `/dev/mem` at the DMA address), and the IRQ counter increases with each
-host write. However, `total_data` in the kernel's ep debugfs stays at 0 if the
-endpoint binding is disrupted mid-transfer.
+(ff580000.usb) correctly receives OUT data into DMA buffers (verified
+by reading `/dev/mem` at the DOEPDMA address), and the IRQ counter increases with
+each host write. However, `total_data` in the kernel's ep debugfs stays at 0 if
+messages are not exactly 64 bytes for EP4.
 
-Root cause: `planck-remote-screen`'s AIO reads block in `ffs_epfile_io` at
-`wait_event_interruptible(epfile->wait, ep = epfile->ep)` if `ffs_func_set_alt`
-was not called or was called while the io_submit was in flight. Re-submitting
-SET_CONFIGURATION from the host wakes this up, but only if done cleanly once at
-startup.
+The 64B padding requirement explains the earlier "kernel bug" hypothesis - the
+transfers were not completing because messages were short-packets.
 
 ---
 
@@ -206,14 +222,18 @@ dev = libusb.open(vid=0x15e4, pid=0xa008)
 dev.set_configuration(1)          # triggers ffs_func_set_alt once
 dev.claim_interface(0)
 
-# Keep IN endpoints polled continuously (device may initiate first)
-start_async_reader(EP3_IN=0x83, max=64)
-start_async_reader(EP1_IN=0x81, max=512)
-
-# Send version handshake on interrupt OUT
+# Send SMEX version handshake on interrupt OUT (must be exactly 64 bytes)
 smex_version = build_smex("smex.protocolversion", "1")
-dev.write(EP4_OUT=0x04, smex_version)
+padded = smex_version + bytes(64 - len(smex_version))  # pad to 64B
+dev.write(EP4_OUT=0x04, padded)   # no response expected
 
-# Wait for smex.version response on EP3 IN
-response = read(EP3_IN=0x83, timeout=3000)
+# Send display commands - all via EP4 (control) and EP2 (bulk data)
+smex_brightness = build_smex("smex.brightness.set", "80")
+dev.write(EP4_OUT=0x04, smex_brightness + bytes(64 - len(smex_brightness)))
+
+# Send bulk image/content data via EP2
+dev.write(EP2_OUT=0x02, image_data)  # variable length, up to 4096B per transfer
 ```
+
+Note: EP3 IN (0x83) and EP1 IN (0x81) exist in the USB descriptor but are not
+used by planck-remote-screen. Do not expect responses on these endpoints.
