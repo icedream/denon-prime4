@@ -215,25 +215,52 @@ The following was confirmed by SSHing into the Prime 4 at runtime:
 - A soft-disconnect/reconnect cycle (`echo disconnect/connect > soft_connect`) followed
   by one clean SET_CONFIGURATION from the host resolves the blockage
 
-### Minimal working connection sequence (pseudocode)
+### Startup sequence (confirmed via strace)
+
+When the host sends SET_CONFIGURATION:
+1. planck reads 12-byte FUNCTIONFS_ENABLE event from ep0
+2. Submits 32 AIO PREADs on ep2 (4096B each) and 32 on ep4 (64B each)
+3. Previous reads complete with `res=-108` (ESHUTDOWN)
+4. Resubmits fresh 64 reads; new messages now complete with `res=64`
+5. Prints "Gadget state changed: connected"
+
+AIO callback object structure per read:
+```
+[4B magic "PGD\0"][4B vtable (JUCE lib)][4B self-ptr]...
+[4B ID][4B buf_ptr][4B buf_size=64]
+```
+
+### State machine blocker
+
+SMEX commands ARE received (confirmed by strace `io_getevents res=64` with correct
+data in buffer). However NO SMEX handler produces any visible effect.
+
+`Acvt::SmexClient` requires three conditions before dispatching handlers:
+1. `ConnectableMessageBlockStream::State = CONNECTED` (set by ENABLE event)
+2. `PingPongListener::Connection = CONNECTED` (**BLOCKER**)
+3. A `bool` enable flag
+
+planck **never** submits `IOCB_CMD_PWRITE` to ep3 under any circumstances (exhaustively
+verified by strace across all 3 threads). The PingPong pong cannot be sent over USB,
+so `SmexClient.connected` never becomes `true`, gating all SMEX handlers.
+
+Tried without success: smex.protocolversion versions 1-4, PingPong ping/pong with
+various seq IDs, EP2 bulk sends, 3+ second delays between messages.
+
+### Known working connection sequence (pseudocode - INCOMPLETE)
 
 ```python
 dev = libusb.open(vid=0x15e4, pid=0xa008)
-dev.set_configuration(1)          # triggers ffs_func_set_alt once
+dev.set_configuration(1)          # triggers ENABLE event on ep0
 dev.claim_interface(0)
 
-# Send SMEX version handshake on interrupt OUT (must be exactly 64 bytes)
-smex_version = build_smex("smex.protocolversion", "1")
-padded = smex_version + bytes(64 - len(smex_version))  # pad to 64B
-dev.write(EP4_OUT=0x04, padded)   # no response expected
+# TODO: unknown step to satisfy PingPongListener.connected
+# Without this, all SMEX handlers remain gated by SmexClient state machine
 
-# Send display commands - all via EP4 (control) and EP2 (bulk data)
-smex_brightness = build_smex("smex.brightness.set", "80")
-dev.write(EP4_OUT=0x04, smex_brightness + bytes(64 - len(smex_brightness)))
-
-# Send bulk image/content data via EP2
-dev.write(EP2_OUT=0x02, image_data)  # variable length, up to 4096B per transfer
+# These ARE received by planck but currently have no effect:
+dev.write(0x04, pad64(build_smex("smex.protocolversion", "1")))
+dev.write(0x04, pad64(build_smex("smex.brightness.set", "80")))
 ```
 
-Note: EP3 IN (0x83) and EP1 IN (0x81) exist in the USB descriptor but are not
-used by planck-remote-screen. Do not expect responses on these endpoints.
+Note: EP3 IN (0x83) and EP1 IN (0x81) exist in the USB descriptor but planck
+never writes to them. Do not expect responses.
