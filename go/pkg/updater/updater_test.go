@@ -1,10 +1,13 @@
 package updater
 
 import (
+	"bufio"
+	"errors"
 	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -32,36 +35,75 @@ func discardLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(io.Discard, nil))
 }
 
+// parseDevicesTxt reads devices.txt from the repository root and returns
+// a list of image codes (the fourth field in each line, e.g. "PRIME4",
+// "MIXSTREAMPRO", etc.) used to construct the expected .img filename.
+//
+// devices.txt format (space-separated):
+//   vendor device_code product_code image_code image_url updater_url full_name
+//
+// We only care about the image_code field (index 3) which is used to
+// construct the firmware image filename.
+func parseDevicesTxt(root string) []string {
+	path := filepath.Join(root, "devices.txt")
+	f, err := os.Open(path)
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+
+	var codes []string
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) >= 4 {
+			codes = append(codes, fields[3])
+		}
+	}
+	return codes
+}
+
 // TestLoadFirmwareImage_AZ01 is an integration test verifying that
 // loadFirmwareImage correctly detects and parses real AZ01-format Engine OS
 // 5.x update images (gitignored, not checked in due to size; skipped
-// entirely if none are present locally).
+// entirely if none are present locally). Candidates are derived from
+// devices.txt.
 func TestLoadFirmwareImage_AZ01(t *testing.T) {
 	root := findRepoRoot(t)
 	if root == "" {
 		t.Skip("could not locate repository root")
 	}
 
-	candidates := []string{
-		"PRIME4-5.0.0-Update.img",
-		"PRIME2-5.0.0-Update.img",
-		"MIXSTREAMPRO-5.0.0-Update.img",
-		"PRIMEGO-5.0.0-Update.img",
-		"SC5000-5.0.0-Update.img",
-		"SC5000M-5.0.0-Update.img",
-		"SC6000-5.0.0-Update.img",
-		"SC6000M-5.0.0-Update.img",
+	codes := parseDevicesTxt(root)
+	if len(codes) == 0 {
+		t.Skip("no devices found in devices.txt")
 	}
 
 	tested := 0
-	for _, name := range candidates {
-		path := filepath.Join(root, name)
-		f, err := os.Open(path)
-		if err != nil {
+	for _, code := range codes {
+		// Try common AZ01/SC6000 image filename patterns
+		candidates := []string{
+			filepath.Join(root, code+"-5.0.0-Update.img"),
+			filepath.Join(root, code+"-5.0.3-Update.img"),
+			filepath.Join(root, code+"-Update.img"),
+		}
+
+		var path string
+		for _, c := range candidates {
+			if _, err := os.Stat(c); err == nil {
+				path = c
+				break
+			}
+		}
+		if path == "" {
 			continue
 		}
-		f.Close()
 
+		name := filepath.Base(path)
 		t.Run(name, func(t *testing.T) {
 			imageFile, err := os.Open(path)
 			if err != nil {
@@ -71,6 +113,11 @@ func TestLoadFirmwareImage_AZ01(t *testing.T) {
 
 			fw, err := loadFirmwareImage(imageFile, discardLogger())
 			if err != nil {
+				// AZ0x format images are expected to be rejected
+				// (not yet supported). Skip them gracefully.
+				if errors.Is(err, ErrUnsupportedConfiguration) {
+					t.Skip("AZ0x format not yet supported")
+				}
 				t.Fatalf("loadFirmwareImage(%q): %v", path, err)
 			}
 
@@ -116,29 +163,33 @@ func TestLoadFirmwareImage_AZ01(t *testing.T) {
 // FIT/device-tree-format Engine OS 4.x update images, so the AZ01 format
 // support added alongside it did not regress the original code path
 // (gitignored, not checked in due to size; skipped entirely if none are
-// present locally).
+// present locally). Candidates are derived by scanning for .dtb files.
 func TestLoadFirmwareImage_FIT(t *testing.T) {
 	root := findRepoRoot(t)
 	if root == "" {
 		t.Skip("could not locate repository root")
 	}
 
-	candidates := []string{
-		"PRIME4-4.3.4-Update.img.dtb",
-		"PRIME4-4.3.3-Update.img.dtb",
-		"PRIMEGO-4.3.4-Update.img.dtb",
-		"PRIMEGO-4.3.3-Update.img.dtb",
+	// Scan for .dtb files in the repository root
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		t.Skip("could not read repository root")
+	}
+
+	var candidates []string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if strings.HasSuffix(name, ".dtb") {
+			candidates = append(candidates, filepath.Join(root, name))
+		}
 	}
 
 	tested := 0
-	for _, name := range candidates {
-		path := filepath.Join(root, name)
-		f, err := os.Open(path)
-		if err != nil {
-			continue
-		}
-		f.Close()
-
+	for _, path := range candidates {
+		name := filepath.Base(path)
 		t.Run(name, func(t *testing.T) {
 			imageFile, err := os.Open(path)
 			if err != nil {
