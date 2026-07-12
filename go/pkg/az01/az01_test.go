@@ -1,14 +1,54 @@
 package az01
 
 import (
+	"bufio"
 	"bytes"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+// deviceEntry represents a single device entry parsed from devices.txt.
+type deviceEntry struct {
+	ImageCode string
+	ImageURL  string
+}
+
+// parseDevicesTxt reads devices.txt from the repository root and returns
+// a list of device entries. The image code and download URL are extracted
+// from each line to derive the expected firmware image filename.
+//
+// devices.txt format (space-separated):
+//   vendor device_code product_code image_code image_url updater_url full_name
+func parseDevicesTxt(root string) []deviceEntry {
+	path := filepath.Join(root, "devices.txt")
+	f, err := os.Open(path)
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+
+	var entries []deviceEntry
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) >= 5 {
+			entries = append(entries, deviceEntry{
+				ImageCode: fields[3],
+				ImageURL:  fields[4],
+			})
+		}
+	}
+	return entries
+}
 
 // buildTestImage assembles a small, valid in-memory AZ01 image with three
 // partitions (mirroring real-world images: an uncompressed "splash", an
@@ -159,25 +199,20 @@ func TestParseRealFirmwareImages(t *testing.T) {
 		t.Skip("could not locate repository root")
 	}
 
-	candidates := []string{
-		"PRIME4-5.0.0-Update.img",
-		"PRIME2-5.0.0-Update.img",
-		"MIXSTREAMPRO-5.0.0-Update.img",
-		"PRIMEGO-5.0.0-Update.img",
-		"SC5000-5.0.0-Update.img",
-		"SC5000M-5.0.0-Update.img",
-		"SC6000-5.0.0-Update.img",
-		"SC6000M-5.0.0-Update.img",
+	entries := parseDevicesTxt(root)
+	if len(entries) == 0 {
+		t.Skip("no devices found in devices.txt")
 	}
 
 	tested := 0
-	for _, name := range candidates {
-		path := filepath.Join(root, name)
+	for _, entry := range entries {
+		expectedName := filepath.Base(entry.ImageURL)
+		path := filepath.Join(root, expectedName)
 		f, err := os.Open(path)
 		if err != nil {
 			continue
 		}
-		t.Run(name, func(t *testing.T) {
+		t.Run(expectedName, func(t *testing.T) {
 			defer f.Close()
 			st, err := f.Stat()
 			require.NoError(t, err)
@@ -212,4 +247,112 @@ func TestParseRealFirmwareImages(t *testing.T) {
 	if tested == 0 {
 		t.Skip("no real firmware images found next to the repository root; skipping integration test")
 	}
+}
+
+// TestRepackRoundTrip verifies that parsing a real AZ01/SC6000 firmware image
+// and then rebuilding it with [Builder] produces a bit-exact reconstruction
+// of the original (modulo the EOF sentinel, which the Builder writes in a
+// canonical 16-byte form regardless of what the original contained).
+func TestRepackRoundTrip(t *testing.T) {
+	root := findRepoRoot(t)
+	if root == "" {
+		t.Skip("could not locate repository root")
+	}
+
+	entries := parseDevicesTxt(root)
+	if len(entries) == 0 {
+		t.Skip("no devices found in devices.txt")
+	}
+
+	tested := 0
+	for _, entry := range entries {
+		expectedName := filepath.Base(entry.ImageURL)
+		path := filepath.Join(root, expectedName)
+		f, err := os.Open(path)
+		if err != nil {
+			continue
+		}
+		t.Run(expectedName, func(t *testing.T) {
+			defer f.Close()
+			st, err := f.Stat()
+			require.NoError(t, err)
+
+			// Skip AZ0x format images (not supported).
+			format, err := DetectFormat(f)
+			require.NoError(t, err)
+			if format == FormatAZ0x {
+				t.Skip("AZ0x format not supported")
+			}
+
+			// Read the original image bytes.
+			original, err := io.ReadAll(io.LimitReader(f, st.Size()))
+			require.NoError(t, err)
+
+			// Parse the image.
+			img, err := Parse(f, st.Size())
+			require.NoError(t, err)
+
+			// Extract partition data (raw, compressed if applicable).
+			var buildPartitions []BuildPartition
+			for i := range img.Partitions {
+				p := &img.Partitions[i]
+				data, err := readPartitionRawData(img, p)
+				require.NoError(t, err, "partition %q data should be readable", p.Name)
+				buildPartitions = append(buildPartitions, BuildPartition{
+					Name:        p.Name,
+					Compression: p.Compression,
+					HashAlgo:    p.HashAlgo,
+					Flags:       p.Flags,
+					Data:        bytes.NewReader(data),
+					DataSize:    int64(len(data)),
+				})
+			}
+
+			// Rebuild the image.
+			builder := Builder{
+				Header:     img.Header,
+				Partitions: buildPartitions,
+			}
+			var rebuilt bytes.Buffer
+			_, err = builder.WriteTo(&rebuilt)
+			require.NoError(t, err, "builder should produce valid output")
+
+			// Compare original with rebuilt, ignoring the EOF sentinel
+			// which may differ in length (16 vs 20 bytes).
+			originalWithoutEOF := stripEOFSentinel(original)
+			rebuiltWithoutEOF := stripEOFSentinel(rebuilt.Bytes())
+			require.Equal(t, originalWithoutEOF, rebuiltWithoutEOF,
+				"repack should produce bit-exact output (modulo EOF sentinel)")
+		})
+		tested++
+	}
+	if tested == 0 {
+		t.Skip("no real firmware images found next to the repository root; skipping integration test")
+	}
+}
+
+// readPartitionRawData reads the raw (possibly compressed) data of a
+// partition from an [Image], without decompressing it.
+func readPartitionRawData(img *Image, p *Partition) ([]byte, error) {
+	raw := img.SectionReader(p)
+	return io.ReadAll(io.LimitReader(raw, int64(p.DataSize)))
+}
+
+// stripEOFSentinel removes the trailing EOF sentinel from data, returning
+// only the header + partition entries + partition data. This is necessary
+// because the Builder writes a canonical 16-byte EOF sentinel, while some
+// original images may have a 20-byte sentinel (with 4 extra leading zeros).
+func stripEOFSentinel(data []byte) []byte {
+	// Find the EOF sentinel. It starts with "EOF\x00".
+	idx := bytes.Index(data, []byte("EOF\x00"))
+	if idx < 0 {
+		// No sentinel found; return the whole thing.
+		return data
+	}
+	// Strip any leading zero bytes before the sentinel (some images have
+	// 4 extra zero bytes before the EOF magic).
+	for idx > 0 && data[idx-1] == 0 {
+		idx--
+	}
+	return data[:idx]
 }
