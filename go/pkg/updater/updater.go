@@ -318,7 +318,7 @@ func parseAZ01Image(imageFile *os.File, logger *slog.Logger) (*firmwareImage, er
 
 	fw := &firmwareImage{
 		Devices:      devicesList,
-		VersionLabel: img.Header.Description,
+		VersionLabel: img.Header.BuildIdentifier,
 	}
 
 	for i := range img.Partitions {
@@ -535,8 +535,7 @@ func (u Updater) runDevice(progressC chan Progress, deviceConfig DeviceConfig) e
 
 		// unlock device for flashing
 		//
-		// The official Windows updater sends this as a single, literal
-		// OEM command string ("oem <magic>", space-separated - standard
+		// OEM commands use the space-separated form "oem <magic>" (standard
 		// fastboot OEM command convention), not "oem:<magic>".
 		if err := withDevice(func(fb *fastboot.FastBootChannel) error {
 			var err error

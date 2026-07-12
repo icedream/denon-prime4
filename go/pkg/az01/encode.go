@@ -62,7 +62,7 @@ func (h Header) encode(buf *bytes.Buffer) error {
 	w.u32(h.Version)
 	headerSizeFieldPos := buf.Len()
 	w.u32(0) // placeholder, patched below
-	w.lenPrefixedString(h.Description)
+	w.lenPrefixedString(h.BuildIdentifier)
 	w.u32(uint32(len(h.ProductCodes)))
 	for _, pc := range h.ProductCodes {
 		w.lenPrefixedString(pc)
@@ -71,7 +71,7 @@ func (h Header) encode(buf *bytes.Buffer) error {
 	for _, id := range h.USBDeviceIDs {
 		w.u32(uint32(id.VendorID)<<16 | uint32(id.ProductID))
 	}
-	w.lenPrefixedString(h.Description2)
+	w.lenPrefixedString(h.Description)
 
 	total := uint32(w.off())
 	binary.LittleEndian.PutUint32(buf.Bytes()[headerSizeFieldPos:headerSizeFieldPos+4], total)

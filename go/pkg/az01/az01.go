@@ -1,58 +1,27 @@
-// Package az01 implements a reader (and writer) for the "AZ01" firmware
-// update image container format used by Denon DJ / Numark / Akai Engine OS
-// 5.x devices such as the Denon DJ PRIME 4 (JC11).
+// Package az01 implements a reader (and writer) for the AZ01/SC6000 firmware
+// update image container format used by Engine OS 5.x devices such as the
+// Denon DJ PRIME 4 (JC11), Denon DJ PRIME 2 (JC16), Denon DJ PRIME GO
+// (JP11), Denon DJ SC5000 PRIME (JP07), Denon DJ SC5000M PRIME (JP08),
+// Numark Mixstream Pro (NH08), and Denon DJ SC6000 PRIME (JP13).
 //
-// # Format overview
+// # Supported formats
 //
-// An AZ01 image starts with a variable-length header (magic "AZ01",
-// followed by a build description, the list of compatible
-// "<vendor>,<product-code>" strings, some still-unidentified per-build
-// integers, and a second, human readable description), immediately followed
-// by a chain of partition entries. Each partition entry is a small,
-// self-describing metadata block (name, compression, content hash)
-// immediately followed by that many bytes of the partition's own (possibly
-// compressed) data, immediately followed by the next partition entry - and
-// so on, until a small "EOF" sentinel is reached.
+//   - [FormatAZ01]: primary format with a 160-byte header. Used by most
+//     Engine OS 5.x devices.
+//   - [FormatSC6000]: variant with a 136-byte header. Used by the Denon DJ
+//     SC6000/SC6000M PRIME. Parsing is otherwise identical.
+//   - [FormatAZ0x]: variable-length, SHA-256/RSA-2048-signed container used
+//     by dual-bootloader devices. Not yet implemented; see
+//     [ErrUnsupportedFormat].
 //
-// Earlier reverse-engineering notes in this repository described the
-// per-partition marker as one of three distinct 5-byte strings, "PARTP",
-// "PARTX" or "PARTL", as if they indicated the partition's position in the
-// table (first/middle/last). Precise byte-level analysis (cross-checked
-// against eight real firmware images and their embedded content hashes)
-// showed this to be a coincidence of formatting: the marker is actually the
-// 4-byte ASCII magic "PART" followed by a little-endian uint32 giving the
-// byte length of the entry's own metadata header. That length just happens
-// to equal a printable ASCII letter (0x50 'P' = 80 bytes, 0x58 'X' = 88
-// bytes, 0x4C 'L' = 76 bytes) for the specific partitions observed so far.
+// # Usage
 //
-// Similarly, firmware images were previously thought to have their trailing
-// .xz stream (holding the root filesystem) truncated, missing its standard
-// 12-byte footer, requiring lenient tools such as binwalk to extract it.
-// This turned out to be incorrect: the footer is present and valid, but
-// extraction attempts need to stop reading at the exact byte offset given
-// by the partition's own DataSize field (see [Partition.DataSize]) instead
-// of reading through to the end of the file, which contains unrelated
-// trailing container data (namely the "EOF" sentinel, and for some devices
-// the beginning of the *next* firmware container if multiple images have
-// been concatenated together, e.g. when produced by some repackaging
-// tools).
+// Use [DetectFormat] to identify the container format, then [Parse] to
+// load the image. The returned [Image] provides access to partitions via
+// [Image.Partition], [Image.Open], [Image.SectionReader], and
+// [Image.UncompressedSize]. Verify partition integrity with [Image.VerifyHash].
 //
-// # Related formats
-//
-// Two related but distinct container formats exist among Engine OS 5.x
-// devices:
-//
-//   - "SC6000": identical to AZ01 (same "AZ01" magic and partition entry
-//     encoding), just with a shorter, 136-byte fixed header holding fewer
-//     product codes. [Parse] handles this format transparently, since the
-//     header's own HeaderSize field is used to locate the partition chain
-//     rather than assuming a fixed 160-byte header.
-//   - "AZ0x": a substantially different, variable-length container used by
-//     dual-bootloader devices (PRIME 4 Plus, Mixstream Pro Go/Plus, RANE
-//     SYSTEM ONE) with SHA-256/RSA-2048 signing instead of bare SHA-1
-//     hashes. [DetectFormat] recognizes this format by its literal "AZ0x"
-//     magic (the 'x' is a literal byte, not a wildcard), but this package
-//     does not yet implement parsing it; see [ErrUnsupportedFormat].
+// For writing, use [Builder] to assemble images from scratch.
 package az01
 
 import (
@@ -158,8 +127,8 @@ type Header struct {
 	// HeaderSize is the total size of the header in bytes, and therefore
 	// also the absolute file offset of the first partition entry.
 	HeaderSize uint32
-	// Description is a build identifier, e.g. "SNAPSHOT-20260507060852".
-	Description string
+	// BuildIdentifier is a build identifier, e.g. "SNAPSHOT-20260507060852".
+	BuildIdentifier string
 	// ProductCodes lists the "<vendor>,<product-code>" strings of devices
 	// this image is compatible with, e.g. "inmusic,jc11".
 	ProductCodes []string
@@ -168,9 +137,9 @@ type Header struct {
 	// update. All observed AZ01/SC6000 images use VID 0x15E4 (Numark
 	// Industries); the PIDs vary by product family.
 	USBDeviceIDs []USBDeviceID
-	// Description2 is a second, human-readable description, e.g. "Planck
-	// AZ01 Console upgrade Image".
-	Description2 string
+	// Description is a human-readable description, e.g. "Planck AZ01
+	// Console upgrade Image".
+	Description string
 }
 
 // USBDeviceID represents a USB vendor/product ID pair (VID:PID).
@@ -394,12 +363,12 @@ func parseHeader(data []byte) (Header, error) {
 	}
 
 	return Header{
-		Version:      version,
-		HeaderSize:   headerSize,
-		Description:  description,
-		ProductCodes: productCodes,
-		USBDeviceIDs: usbIDs,
-		Description2: description2,
+		Version:         version,
+		HeaderSize:      headerSize,
+		BuildIdentifier: description,
+		ProductCodes:    productCodes,
+		USBDeviceIDs:    usbIDs,
+		Description:     description2,
 	}, nil
 }
 

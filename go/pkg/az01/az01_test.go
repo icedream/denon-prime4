@@ -28,14 +28,14 @@ func buildTestImage(t *testing.T) []byte {
 
 	b := Builder{
 		Header: Header{
-			Version:      1,
-			Description:  "SNAPSHOT-19700101000000",
-			ProductCodes: []string{"inmusic,test1", "inmusic,test2"},
+			Version:         1,
+			BuildIdentifier: "SNAPSHOT-19700101000000",
+			ProductCodes:    []string{"inmusic,test1", "inmusic,test2"},
 			USBDeviceIDs: []USBDeviceID{
 				{VendorID: 0x1111, ProductID: 0x1111},
 				{VendorID: 0x2222, ProductID: 0x2222},
 			},
-			Description2: "Test AZ01 image",
+			Description: "Test AZ01 image",
 		},
 		Partitions: []BuildPartition{
 			{
@@ -83,13 +83,13 @@ func TestBuildAndParseRoundTrip(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, uint32(1), img.Header.Version)
-	require.Equal(t, "SNAPSHOT-19700101000000", img.Header.Description)
+	require.Equal(t, "SNAPSHOT-19700101000000", img.Header.BuildIdentifier)
 	require.Equal(t, []string{"inmusic,test1", "inmusic,test2"}, img.Header.ProductCodes)
 	require.Equal(t, []USBDeviceID{
 		{VendorID: 0x1111, ProductID: 0x1111},
 		{VendorID: 0x2222, ProductID: 0x2222},
 	}, img.Header.USBDeviceIDs)
-	require.Equal(t, "Test AZ01 image", img.Header.Description2)
+	require.Equal(t, "Test AZ01 image", img.Header.Description)
 
 	// USBDeviceIDs.String() should format correctly
 	require.Equal(t, "1111:1111", img.Header.USBDeviceIDs[0].String())
