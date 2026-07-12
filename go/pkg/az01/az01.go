@@ -394,12 +394,12 @@ func parseHeader(data []byte) (Header, error) {
 	}
 
 	return Header{
-		Version:        version,
-		HeaderSize:     headerSize,
-		Description:    description,
-		ProductCodes:   productCodes,
-		USBDeviceIDs:   usbIDs,
-		Description2:   description2,
+		Version:      version,
+		HeaderSize:   headerSize,
+		Description:  description,
+		ProductCodes: productCodes,
+		USBDeviceIDs: usbIDs,
+		Description2: description2,
 	}, nil
 }
 

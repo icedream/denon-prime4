@@ -32,9 +32,9 @@ func buildTestImage(t *testing.T) []byte {
 			Description:  "SNAPSHOT-19700101000000",
 			ProductCodes: []string{"inmusic,test1", "inmusic,test2"},
 			USBDeviceIDs: []USBDeviceID{
-			{VendorID: 0x1111, ProductID: 0x1111},
-			{VendorID: 0x2222, ProductID: 0x2222},
-		},
+				{VendorID: 0x1111, ProductID: 0x1111},
+				{VendorID: 0x2222, ProductID: 0x2222},
+			},
 			Description2: "Test AZ01 image",
 		},
 		Partitions: []BuildPartition{
