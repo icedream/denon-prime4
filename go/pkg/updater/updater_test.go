@@ -35,16 +35,22 @@ func discardLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(io.Discard, nil))
 }
 
+// deviceEntry represents a single device entry parsed from devices.txt.
+type deviceEntry struct {
+	// ImageCode is the image identifier (e.g. "PRIME4", "MIXSTREAMPRO").
+	ImageCode string
+	// ImageURL is the download URL for the firmware image.
+	ImageURL string
+}
+
 // parseDevicesTxt reads devices.txt from the repository root and returns
-// a list of image codes (the fourth field in each line, e.g. "PRIME4",
-// "MIXSTREAMPRO", etc.) used to construct the expected .img filename.
+// a list of device entries. The image code and download URL are extracted
+// from each line to derive the expected firmware image filename.
 //
 // devices.txt format (space-separated):
-//   vendor device_code product_code image_code image_url updater_url full_name
 //
-// We only care about the image_code field (index 3) which is used to
-// construct the firmware image filename.
-func parseDevicesTxt(root string) []string {
+//	vendor device_code product_code image_code image_url updater_url full_name
+func parseDevicesTxt(root string) []deviceEntry {
 	path := filepath.Join(root, "devices.txt")
 	f, err := os.Open(path)
 	if err != nil {
@@ -52,7 +58,7 @@ func parseDevicesTxt(root string) []string {
 	}
 	defer f.Close()
 
-	var codes []string
+	var entries []deviceEntry
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -60,11 +66,14 @@ func parseDevicesTxt(root string) []string {
 			continue
 		}
 		fields := strings.Fields(line)
-		if len(fields) >= 4 {
-			codes = append(codes, fields[3])
+		if len(fields) >= 5 {
+			entries = append(entries, deviceEntry{
+				ImageCode: fields[3],
+				ImageURL:  fields[4],
+			})
 		}
 	}
-	return codes
+	return entries
 }
 
 // TestLoadFirmwareImage_AZ01 is an integration test verifying that
@@ -78,32 +87,22 @@ func TestLoadFirmwareImage_AZ01(t *testing.T) {
 		t.Skip("could not locate repository root")
 	}
 
-	codes := parseDevicesTxt(root)
-	if len(codes) == 0 {
+	entries := parseDevicesTxt(root)
+	if len(entries) == 0 {
 		t.Skip("no devices found in devices.txt")
 	}
 
 	tested := 0
-	for _, code := range codes {
-		// Try common AZ01/SC6000 image filename patterns
-		candidates := []string{
-			filepath.Join(root, code+"-5.0.0-Update.img"),
-			filepath.Join(root, code+"-5.0.3-Update.img"),
-			filepath.Join(root, code+"-Update.img"),
-		}
+	for _, entry := range entries {
+		// Derive expected filename from the download URL in devices.txt
+		expectedName := filepath.Base(entry.ImageURL)
+		path := filepath.Join(root, expectedName)
 
-		var path string
-		for _, c := range candidates {
-			if _, err := os.Stat(c); err == nil {
-				path = c
-				break
-			}
-		}
-		if path == "" {
+		if _, err := os.Stat(path); err != nil {
 			continue
 		}
 
-		name := filepath.Base(path)
+		name := expectedName
 		t.Run(name, func(t *testing.T) {
 			imageFile, err := os.Open(path)
 			if err != nil {

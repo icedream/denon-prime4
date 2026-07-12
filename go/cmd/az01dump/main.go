@@ -103,8 +103,8 @@ func runInfo(args []string) error {
 	fmt.Printf("Format:        %s\n", img.Format)
 	fmt.Printf("Version:       %d\n", img.Header.Version)
 	fmt.Printf("Header size:   %d bytes (0x%X)\n", img.Header.HeaderSize, img.Header.HeaderSize)
+	fmt.Printf("Build ID:      %s\n", img.Header.BuildIdentifier)
 	fmt.Printf("Description:   %s\n", img.Header.Description)
-	fmt.Printf("Description 2: %s\n", img.Header.Description2)
 	fmt.Printf("Product codes:")
 	for _, pc := range img.Header.ProductCodes {
 		fmt.Printf(" %s", pc)
