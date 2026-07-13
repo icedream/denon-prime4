@@ -30,6 +30,7 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 	"github.com/roblillack/spot/ui"
+	"github.com/u-root/u-root/pkg/dt"
 	slogmulti "github.com/samber/slog-multi"
 )
 
@@ -351,6 +352,8 @@ func triggerUpdate(u *updater.Updater, state *State) {
 			message = "No matching devices were found. Please plug in one of the devices listed above and reboot it into bootloader mode. Check the manual for instructions."
 		case errors.Is(err, updater.ErrUnsupportedConfiguration):
 			message = "Unsupported configuration."
+		case errors.Is(err, dt.ErrNoValidReaders):
+			message = buildMessage("Could not read firmware image. The device may not be in bootloader mode, or the image file may be corrupted.", retryMessage)
 		default:
 			slog.Warn("Unknown error type",
 				"err", err,
