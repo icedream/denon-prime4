@@ -16,7 +16,7 @@ require (
 	github.com/sqweek/dialog v0.0.0-20260123140253-64c163d53aac
 	github.com/stretchr/testify v1.11.1
 	github.com/u-root/u-root v0.15.0
-	github.com/ulikunitz/xz v0.5.15
+	github.com/ulikunitz/xz v0.5.16
 )
 
 require (
