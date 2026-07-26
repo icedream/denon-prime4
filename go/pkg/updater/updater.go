@@ -547,6 +547,12 @@ func (u Updater) runDevice(progressC chan Progress, deviceConfig DeviceConfig) e
 			})
 			return err
 		}); err != nil {
+			if errors.Is(err, ErrNoMatchingDevices) {
+				u.logger.Warn(
+					"VID:PID not present, skipping",
+					"deviceID", fmt.Sprintf("%04x:%04x", deviceID.VendorID, deviceID.ProductID))
+				continue
+			}
 			return err
 		}
 
