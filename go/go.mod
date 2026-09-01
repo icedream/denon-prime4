@@ -9,6 +9,7 @@ require (
 	github.com/google/gousb v1.1.3
 	github.com/jamespfennell/xz v0.1.2
 	github.com/knadh/koanf/parsers/toml v0.1.0
+	github.com/knadh/koanf/parsers/toml/v2 v2.2.2
 	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/v2 v2.3.2
 	github.com/roblillack/spot v0.3.2
