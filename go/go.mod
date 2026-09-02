@@ -14,7 +14,7 @@ require (
 	github.com/roblillack/spot v0.3.2
 	github.com/samber/slog-multi v1.7.0
 	github.com/sqweek/dialog v0.0.0-20260123140253-64c163d53aac
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.1
 	github.com/u-root/u-root v0.15.0
 	github.com/ulikunitz/xz v0.5.15
 )
@@ -37,6 +37,7 @@ require (
 	github.com/samber/lo v1.52.0 // indirect
 	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96 // indirect
 	golang.org/x/exp/shiny v0.0.0-20260112195511-716be5621a96 // indirect
 	golang.org/x/image v0.35.0 // indirect
