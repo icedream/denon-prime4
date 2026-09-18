@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	gioui.org v0.9.0
 	github.com/PuerkitoBio/goquery v1.11.0
-	github.com/dustin/go-humanize v1.0.1
+	github.com/dustin/go-humanize v1.1.0
 	github.com/google/gousb v1.1.3
 	github.com/jamespfennell/xz v0.1.2
 	github.com/knadh/koanf/parsers/toml v0.1.0
