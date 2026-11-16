@@ -8,6 +8,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"time"
@@ -56,7 +57,10 @@ func main() {
 
 	progress := make(chan updater.Progress)
 	rendered := make(chan struct{})
-	go renderProgress(progress, os.Stdout, rendered)
+	var renderErr error
+	go func() {
+		renderErr = renderProgress(progress, os.Stdout, rendered)
+	}()
 
 	runErr := instance.Run(progress)
 	<-rendered
@@ -64,6 +68,9 @@ func main() {
 	if runErr != nil {
 		fmt.Fprintf(os.Stderr, "updater-cli: %v\n", runErr)
 		os.Exit(1)
+	}
+	if renderErr != nil {
+		fmt.Fprintf(os.Stderr, "updater-cli: progress output: %v\n", renderErr)
 	}
 	fmt.Println("flash complete")
 }
@@ -88,19 +95,18 @@ func loadConfig(path string) (updater.Config, error) {
 	return config, nil
 }
 
-func renderProgress(progress <-chan updater.Progress, out *os.File, done chan<- struct{}) {
+func renderProgress(progress <-chan updater.Progress, out *os.File, done chan<- struct{}) error {
 	defer close(done)
 
 	if isTerminal(out) {
-		renderTTY(progress, out)
-		return
+		return renderTTY(progress, out)
 	}
-	renderLinear(progress, out)
+	return renderLinear(progress, out)
 }
 
 // renderTTY keeps every finished phase on screen as a completed line and
-// redraws only the phase in progress.
-func renderTTY(progress <-chan updater.Progress, out *os.File) {
+// redraws only the phase in progress. mpb owns the writes.
+func renderTTY(progress <-chan updater.Progress, out *os.File) error {
 	container := mpb.New(mpb.WithOutput(out), mpb.WithRefreshRate(200*time.Millisecond))
 
 	var current *mpb.Bar
@@ -122,6 +128,7 @@ func renderTTY(progress <-chan updater.Progress, out *os.File) {
 		current.SetTotal(current.Current(), true)
 	}
 	container.Wait()
+	return nil
 }
 
 func addBar(container *mpb.Progress, p updater.Progress) *mpb.Bar {
@@ -139,23 +146,30 @@ func addBar(container *mpb.Progress, p updater.Progress) *mpb.Bar {
 		))
 }
 
-func renderLinear(progress <-chan updater.Progress, out *os.File) {
+// renderLinear is the non-terminal path: one line per phase plus percentage
+// steps, so the output stays readable in a log or a pipe.
+func renderLinear(progress <-chan updater.Progress, out io.Writer) error {
 	phase := ""
 	reported := -1.0
 
 	for p := range progress {
 		if p.Text != phase {
 			phase, reported = p.Text, -1.0
-			fmt.Fprintf(out, "%s\n", phase)
+			if _, err := fmt.Fprintf(out, "%s\n", phase); err != nil {
+				return err
+			}
 		}
 		if p.Indetermined {
 			continue
 		}
 		if p.Percentage-reported >= 0.25 || p.Percentage >= 0.995 {
-			fmt.Fprintf(out, "  %5.1f%%\n", p.Percentage*100)
+			if _, err := fmt.Fprintf(out, "  %5.1f%%\n", p.Percentage*100); err != nil {
+				return err
+			}
 			reported = p.Percentage
 		}
 	}
+	return nil
 }
 
 func isTerminal(f *os.File) bool {
