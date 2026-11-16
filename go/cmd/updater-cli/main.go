@@ -1,8 +1,8 @@
 // Command updater-cli flashes a firmware image over USB without the GUI.
 //
-// Output adapts to where it goes: a terminal gets one status line redrawn in
-// place, a pipe or log file gets one line per phase plus percentage steps. Both
-// stay line-oriented so a script can read them.
+// Output adapts to where it goes: a terminal gets one bar per phase, the current
+// one redrawn in place, while a pipe or log file gets one line per phase plus
+// percentage steps.
 package main
 
 import (
@@ -10,14 +10,14 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/icedream/denon-prime4/go/pkg/updater"
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
+	"github.com/vbauerster/mpb/v8"
+	"github.com/vbauerster/mpb/v8/decor"
 )
 
 var (
@@ -28,7 +28,8 @@ var (
 	flagLibusbDebug = flag.Int("libusb_debug", 0, "libusb debug level, 0 through 3")
 )
 
-const spinner = `|/-\`
+// progress arrives as a fraction, so bars work against a fixed scale.
+const scale = 1000
 
 func main() {
 	flag.Parse()
@@ -90,88 +91,71 @@ func loadConfig(path string) (updater.Config, error) {
 func renderProgress(progress <-chan updater.Progress, out *os.File, done chan<- struct{}) {
 	defer close(done)
 
-	tty := isTerminal(out)
-	started := time.Now()
-	phase := ""
-	reported := -1.0
-	frame := 0
-	current := updater.Progress{}
-	haveCurrent := false
-
-	ticker := time.NewTicker(200 * time.Millisecond)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case p, ok := <-progress:
-			if !ok {
-				if tty {
-					fmt.Fprintln(out)
-				}
-				return
-			}
-
-			current, haveCurrent = p, true
-
-			if p.Text != phase {
-				phase, reported = p.Text, -1.0
-				if tty {
-					fmt.Fprintln(out)
-				}
-				fmt.Fprintf(out, "%s\n", phase)
-			}
-
-			switch {
-			case tty:
-				drawTTY(out, p, started, frame)
-			case !p.Indetermined && (p.Percentage-reported >= 0.25 || p.Percentage >= 0.995):
-				fmt.Fprintf(out, "  %5.1f%%\n", p.Percentage*100)
-				reported = p.Percentage
-			}
-
-		case <-ticker.C:
-			if tty && haveCurrent {
-				frame++
-				drawTTY(out, current, started, frame)
-			}
-		}
-	}
-}
-
-func drawTTY(out *os.File, p updater.Progress, started time.Time, frame int) {
-	elapsed := time.Since(started).Truncate(100 * time.Millisecond)
-
-	if p.Indetermined {
-		fmt.Fprintf(out, "\r%c %s (%s)\x1b[K", spinner[frame%len(spinner)], p.Text, elapsed)
+	if isTerminal(out) {
+		renderTTY(progress, out)
 		return
 	}
-
-	share := p.Percentage
-	if share < 0 {
-		share = 0
-	}
-	if share > 1 {
-		share = 1
-	}
-
-	width := barWidth()
-	filled := int(share*float64(width) + 0.5)
-	bar := strings.Repeat("#", filled) + strings.Repeat("-", width-filled)
-	fmt.Fprintf(out, "\r[%s] %5.1f%% %s (%s)\x1b[K", bar, share*100, p.Text, elapsed)
+	renderLinear(progress, out)
 }
 
-func barWidth() int {
-	width := 40
-	if columns, err := strconv.Atoi(os.Getenv("COLUMNS")); err == nil && columns > 0 {
-		width = columns - 30
+// renderTTY keeps every finished phase on screen as a completed line and
+// redraws only the phase in progress.
+func renderTTY(progress <-chan updater.Progress, out *os.File) {
+	container := mpb.New(mpb.WithOutput(out), mpb.WithRefreshRate(200*time.Millisecond))
+
+	var current *mpb.Bar
+	phase := ""
+
+	for p := range progress {
+		if p.Text != phase || current == nil {
+			if current != nil {
+				current.SetTotal(current.Current(), true)
+			}
+			current, phase = addBar(container, p), p.Text
+		}
+		if !p.Indetermined {
+			current.SetCurrent(int64(p.Percentage * scale))
+		}
 	}
-	if width < 10 {
-		width = 10
+
+	if current != nil {
+		current.SetTotal(current.Current(), true)
 	}
-	if width > 60 {
-		width = 60
+	container.Wait()
+}
+
+func addBar(container *mpb.Progress, p updater.Progress) *mpb.Bar {
+	name := mpb.PrependDecorators(decor.Name(p.Text, decor.WC{W: 24, C: decor.DindentRight}))
+
+	if p.Indetermined {
+		return container.AddSpinner(0, name,
+			mpb.AppendDecorators(decor.Elapsed(decor.ET_STYLE_MMSS, decor.WC{W: 6})))
 	}
-	return width
+
+	return container.AddBar(scale, name,
+		mpb.AppendDecorators(
+			decor.Percentage(decor.WC{W: 7}),
+			decor.Elapsed(decor.ET_STYLE_MMSS, decor.WC{W: 6}),
+		))
+}
+
+func renderLinear(progress <-chan updater.Progress, out *os.File) {
+	phase := ""
+	reported := -1.0
+
+	for p := range progress {
+		if p.Text != phase {
+			phase, reported = p.Text, -1.0
+			fmt.Fprintf(out, "%s\n", phase)
+		}
+		if p.Indetermined {
+			continue
+		}
+		if p.Percentage-reported >= 0.25 || p.Percentage >= 0.995 {
+			fmt.Fprintf(out, "  %5.1f%%\n", p.Percentage*100)
+			reported = p.Percentage
+		}
+	}
 }
 
 func isTerminal(f *os.File) bool {
